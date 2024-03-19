@@ -1,0 +1,136 @@
+/* Обнуление стилей */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Центрирование */
+.center {
+    padding-left: calc(50% - 1800px / 2);
+    padding-right: calc(50% - 1800px / 2);
+}
+
+/* Начало стилей заголовочной секции */
+.header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    background: rgba(227, 227, 227);
+}
+
+.header-content-header, .social-logo-header {
+    font-family: "Cascadia Code", monospace;
+}
+
+.social-logo {
+    display: flex;
+    align-items: center;
+    gap: 50px;
+}
+
+.social-logo-image {
+    width: 100px;
+}
+/* Конец стилей заголовочной секции */
+
+/* Начало стилей основной секции */
+.main-content-header {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    font-family: "Cascadia Code", monospace;
+    text-align: center;
+}
+
+.main-content {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    background: rgba(227, 227, 227, 0.5);}
+
+.auth-form {
+    padding-top: 100px;
+    display: grid;
+    justify-content: space-around;
+    align-items: baseline;
+    justify-items: center;
+    align-content: center;
+    gap: 25px;
+}
+
+.login-label, .password-label {
+    font-family: "Cascadia Code", monospace;
+    text-align: center;
+}
+
+#login, #password {
+    font-family: "Hack Nerd Font Mono", monospace;
+    border: unset;
+    border: 2px solid #969696;
+    display: grid;
+    margin-top: 10px;
+    height: 50px;
+    width: 325px;
+    text-align: center;
+}
+
+.login-button {
+    font-family: "DejaVu Serif", serif;
+    border: solid #969696;
+    background: #e9e9e9;
+    cursor: pointer;
+    height: 50px;
+    width: 172px;
+}
+
+.forgot-password, .wrong-login-password {
+    font-family: "Cascadia Code", monospace;
+    text-align: center;
+    color: #ff0000;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.forgot-password-link {
+    text-decoration: none;
+    color: #0000ff;
+}
+/* Конец стилей основной секции */
+
+/* Начало стилей подвальной секции */
+.footer {
+    border-top: 2px solid rgba(0, 0, 0, 0.5);;
+    padding-top: 20px;
+    padding-bottom: 10px;
+    background: rgba(227, 227, 227);
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.footer-header {
+    font-family: Hack, cursive;
+}
+
+.theme-work {
+    color: #0000ff;
+    font-style: italic;
+}
+
+.no-commercial {
+    color: red;
+}
+/* Конец стилей подвальной секции */
+
+@media (max-width: 1366px) {
+    .center {
+        padding-left: calc(50% - 1300px / 2);
+        padding-right: calc(50% - 1300px / 2);
+    }
+}
