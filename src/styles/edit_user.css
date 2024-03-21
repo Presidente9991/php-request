@@ -80,8 +80,19 @@
     padding-bottom: 10px;
 }
 
-.block-unblock-users-form-warning {
+.block-unblock-users-form-warning, .error-message {
+    font-family: "Cascadia Code", monospace;
+    text-align: center;
     color: #ff0000;
+    padding-top: 20px;
+    padding-bottom: 20px;}
+
+.success-message {
+    color: #008000;
+    font-family: "Cascadia Code", monospace;
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: 20px;
 }
 
 #blocked_until, #new-password, #new-password-check {

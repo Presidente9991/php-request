@@ -131,7 +131,7 @@ if (isset($_GET['users_id']) && is_numeric($_GET['users_id'])) {
             <?php unset($_SESSION['chpasswd_success']); ?>
         <?php endif; ?>
         <?php if (isset($_SESSION['chpasswd_error'])): ?>
-            <p class="error-message" style="color: red;"><?php echo $_SESSION['chpasswd_error']; ?></p>
+            <p class="error-message"><?php echo $_SESSION['chpasswd_error']; ?></p>
             <?php unset($_SESSION['chpasswd_error']); ?>
         <?php endif; ?>
         <form class="change-password-form" action="/phprequest/src/scripts/php/chpasswd.php" method="post" id="change-password-form">

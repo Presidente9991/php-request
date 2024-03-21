@@ -191,7 +191,9 @@ INSERT INTO phprequest_schema.request_statuses VALUES (3, 'Ответ по за�
 -- Data for Name: users; Type: TABLE DATA; Schema: phprequest_schema; Owner: pgsql
 --
 
+INSERT INTO phprequest_schema.users VALUES (2, 'ivanov_ii', '$2y$10$VdaOYWlrS04bYgbD2dnRj.wK.SRJgzn6/MXEJ5iulE.lapPj3B0/e', 'Иван', 'Иванов', 'Иванович', 2, '2024-03-21 22:20:36', '2024-06-19 00:00:00', false, false, NULL, 0);
 INSERT INTO phprequest_schema.users VALUES (1, 'Requester', '$2y$10$lIVDmqlfwpuF0lXGDX9hde4VRQBULl4FbRFsz5JvBenc6iU.ezPfu', 'Админ', 'Супер', '', 1, '2024-03-08 00:00:00', '2024-06-06 00:00:00', true, false, NULL, 0);
+INSERT INTO phprequest_schema.users VALUES (3, 'petrov_pp', '$2y$10$TFJ2hn/RFart4W3kchfG7uyiFZLwlnG7rjciq1B8xsBmPpyxIr/dC', 'Пётр', 'Петров', 'Петрович', 2, '2024-03-21 22:10:17.047484', '2024-03-21 22:10:17.047484', true, false, NULL, 0);
 
 
 --
@@ -220,7 +222,7 @@ SELECT pg_catalog.setval('phprequest_schema.requests_id_sec', 1, false);
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: phprequest_schema; Owner: pgsql
 --
 
-SELECT pg_catalog.setval('phprequest_schema.users_id_seq', 1, false);
+SELECT pg_catalog.setval('phprequest_schema.users_id_seq', 3, true);
 
 
 --

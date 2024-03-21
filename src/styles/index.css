@@ -85,12 +85,16 @@
     width: 172px;
 }
 
-.forgot-password, .wrong-login-password {
+.forgot-password, .wrong-login-password, .blocked-message, .error-message {
     font-family: "Cascadia Code", monospace;
     text-align: center;
     color: #ff0000;
     padding-top: 20px;
     padding-bottom: 20px;
+}
+
+.success-message {
+    color: #008000;
 }
 
 .forgot-password-link {

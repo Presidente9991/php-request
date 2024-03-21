@@ -19,13 +19,6 @@ require_once ('../scripts/php/unblock_users.php');
 require_once('../scripts/php/database.php');
 checkAndUnblockUsers();
 
-// Проверяем, авторизован ли пользователь
-if (!isset($_SESSION['user'])) {
-// Если пользователь не авторизован, перенаправляем его на страницу входа
-header('Location: /phprequest/index.php');
-exit();
-}
-
 // Вывод ошибок возникших при задании нового пароля
 if (isset($_SESSION['reset_password_error'])) {
     echo '<p class="error-message">' . $_SESSION['reset_password_error'] . '</p>';

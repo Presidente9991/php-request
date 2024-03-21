@@ -92,6 +92,7 @@ button[name="add_request"], #file_upload, .apply-changes {
 
 .delete-file {
     text-decoration: none;
+    cursor: pointer;
     color: #ff0000;
     font-family: "DejaVu Serif", serif;
     font-weight: bold;
@@ -102,7 +103,19 @@ button[name="add_request"], #file_upload, .apply-changes {
 }
 
 .error-message {
-    color: red;
+    color: #ff0000;
+    font-family: "Cascadia Code", monospace;
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.success-message {
+    color: #008000;
+    font-family: "Cascadia Code", monospace;
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: 20px;
 }
 /* Конец стилей для основной секции */
 

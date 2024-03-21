@@ -74,6 +74,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requests_id']) && !is
         exit();
     }
 
+    // Проверяем MIME-тип загруженного файла
+    if(isset($_FILES['file_upload']) && $_FILES['file_upload']['error'] === UPLOAD_ERR_OK) {
+        $allowedMimeTypes = ['application/pdf', 'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.spreadsheet', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+
+        // Получаем MIME-тип файла
+        $fileMimeType = mime_content_type($_FILES['file_upload']['tmp_name']);
+
+        // Проверяем, соответствует ли MIME-тип разрешенным типам
+        if (!in_array($fileMimeType, $allowedMimeTypes)) {
+            $_SESSION['edit_request_error'] = 'Недопустимый формат файла. Разрешены только PDF, ODT, ODS, DOC, DOCX, XLS и XLSX.';
+            header('Location: /phprequest/src/scripts/php/edit_request.php?requests_id=' . $requestId);
+            exit();
+        }
+    }
+
     // Если файл не был удален или не было ошибок, обновляем данные запроса с возможной загрузкой файла
     // Тогда выполняем запрос на обновление данных запроса
     $query = "UPDATE phprequest_schema.requests 
@@ -92,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requests_id']) && !is
     if ($result) {
         // Если файл был загружен
         if(isset($_FILES['file_upload']) && $_FILES['file_upload']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = '/documents/'; // Каталог для сохранения загруженных файлов
+            $uploadDir = '/phprequest/documents/'; // Каталог для сохранения загруженных файлов
             $uploadFile = $uploadDir . basename($_FILES['file_upload']['name']);
 
             // Перемещаем загруженный файл в указанную директорию
@@ -138,22 +153,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requests_id']) && !is
     }
 }
 
-// Проверяем, был ли отправлен POST-запрос для удаления файла
+// Проверить, был ли отправлен POST-запрос для удаления файла
 else if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requests_id']) && isset($_POST['delete_file'])) {
     $requestId = pg_escape_string(databaseConnection(), $_POST['requests_id']);
 
-    // Получаем ссылку на файл из базы данных
+    // Получить ссылку на файл из базы данных
     $queryGetFile = "SELECT download_link FROM phprequest_schema.requests WHERE requests_id = '$requestId'";
     $resultGetFile = pg_query(databaseConnection(), $queryGetFile);
     if ($resultGetFile && pg_num_rows($resultGetFile) > 0) {
         $row = pg_fetch_assoc($resultGetFile);
         $filePath = $_SERVER['DOCUMENT_ROOT'] . $row['download_link'];
-        // Удаляем файл, если он существует
+
+        // Удалить файл, если он существует
         if (file_exists($filePath)) {
-            unlink($filePath);
+            if (unlink($filePath)) {
+                $_SESSION['edit_request_success'] = 'Файл успешно удален';
+            } else {
+                $_SESSION['edit_request_error'] = 'Ошибка при удалении файла';
+            }
+        } else {
+            $_SESSION['edit_request_error'] = 'Файл не найден';
         }
+    } else {
+        $_SESSION['edit_request_error'] = 'Ошибка при получении ссылки на файл';
     }
-    // Удаляем ссылку на файл из базы данных
+
+
+    // Удалить ссылку на файл из базы данных
     $queryDeleteFile = "UPDATE phprequest_schema.requests SET download_link = NULL WHERE requests_id = '$requestId'";
     $resultDeleteFile = pg_query(databaseConnection(), $queryDeleteFile);
     if (!$resultDeleteFile) {

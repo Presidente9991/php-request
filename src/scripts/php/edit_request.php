@@ -52,6 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['requests_id'])) {
                         echo "<p class='error-message'>Ошибка: {$_SESSION['edit_request_error']}</p>";
                         unset($_SESSION['edit_request_error']);
                     }
+                    if(isset($_SESSION['edit_request_success'])) {
+                        echo "<p class='success-message'> {$_SESSION['edit_request_success']}</p>";
+                    }
                     ?>
                     <form class="edit-request-form" action="update_request.php" method="post" enctype="multipart/form-data">
                         <label for="snils_citizen">СНИЛС гражданина:</label>

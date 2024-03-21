@@ -118,10 +118,18 @@
 
 .red, .error-message, .unblock-users-message, .registration-error {
     color: #ff0000 !important;
+    font-family: "Cascadia Code", monospace;
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: 20px;
 }
 
 .green, .success-message, .registration-success {
     color: #008000;
+    font-family: "Cascadia Code", monospace;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 /* Конец стилей для секции с регистрацией новых пользователей */
 

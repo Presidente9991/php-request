@@ -116,33 +116,3 @@ function hasSequentialDigits($password): bool
     }
     return false;
 }
-
-// Функция для обновления даты последнего изменения пароля пользователя
-function updatePasswordLastChanged($userId)
-{
-    $db_conn = databaseConnection();
-
-    // Получаем текущую дату и время
-    $currentDateTime = date("Y-m-d H:i:s");
-
-    // Выполняем запрос на обновление даты последнего изменения пароля
-    $query = "UPDATE phprequest_schema.users SET password_last_changed_at = '$currentDateTime' WHERE users_id = $userId";
-    $result = pg_query($db_conn, $query);
-
-    return $result;
-}
-
-// Функция для обновления даты истечения срока действия пароля пользователя
-function updatePasswordExpiryDate($userId, $expiryDays)
-{
-    $db_conn = databaseConnection();
-
-    // Получаем текущую дату и добавляем к ней количество дней для срока действия пароля
-    $expiryDate = date("Y-m-d H:i:s", strtotime("+$expiryDays days"));
-
-    // Выполняем запрос на обновление даты истечения срока действия пароля
-    $query = "UPDATE phprequest_schema.users SET password_expiry_date = '$expiryDate' WHERE users_id = $userId";
-    $result = pg_query($db_conn, $query);
-
-    return $result;
-}

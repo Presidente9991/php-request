@@ -33,7 +33,7 @@ const selectedDate = urlParams.get('date');
 // Проверяем, что выбранная дата не равна null
 if (selectedDate !== null) {
 // Настраиваем запрос
-xhr.open('GET', '/src/pages/main.php?date=' + selectedDate, true);
+xhr.open('GET', '/phprequest/src/pages/main.php?date=' + selectedDate, true);
 
 // Отправляем запрос
 xhr.send();

@@ -1,16 +1,11 @@
 <?php
 session_start();
 
-// Проверить, авторизован ли пользователь
-if (!isset($_SESSION['user'])) {
-    // Если пользователь не авторизован, перенаправляем его на страницу входа
-    header('Location: /phprequest/index.php');
-    exit();
-}
-
 require_once('database.php');
 require_once('unblock_users.php');
 checkAndUnblockUsers();
+var_dump($_POST);
+var_dump($_SESSION);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['new_password'], $_POST['confirm_password'])) {
@@ -33,15 +28,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $user = pg_fetch_assoc($getUserResult);
                 $unlimitedPasswordExpiry = $user['unlimited_password_expiry'];
 
-                if ($unlimitedPasswordExpiry === 'false') {
+                if ($unlimitedPasswordExpiry === 'f') {
                     // Если срок действия пароля не без ограничений, обновляем пароль и дату последнего изменения
                     $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
                     $currentDate = date('Y-m-d H:i:s');
+                    $expiryDate = calculateExpiryDate();
 
                     $updateQuery = "UPDATE phprequest_schema.users 
-                                    SET password = $1, password_last_changed_at = $2 
-                                    WHERE users_id = $3";
-                    $updateResult = pg_query_params($db_conn, $updateQuery, array($hashedPassword, $currentDate, $userId));
+                                    SET password = $1, password_last_changed_at = $2, password_expiry_date = $3
+                                    WHERE users_id = $4";
+                    $updateResult = pg_query_params($db_conn, $updateQuery, array($hashedPassword, $currentDate, $expiryDate, $userId));
+
 
                     if ($updateResult) {
                         unset($_SESSION['user_id_to_reset_password']);
@@ -64,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $_SESSION['reset_password_error'] = 'Недостаточно данных для смены пароля';
     }
-
+    // Перенаправляем пользователя на страницу смены пароля снова в случае ошибок
     header('Location: reset_password.php');
     exit();
 }
@@ -73,6 +70,12 @@ function validatePassword($password): bool
 {
     $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!"$%&\'()+,\-.\/:;<=>?@\[\]^_{|}~`-])(?!.*[а-яА-Я])(?!.*(.)\1\1\1)(?!.*(\w)\1\1\1)(?!.*\s).{8,}$/';
     return preg_match($pattern, $password) && !hasSequentialLetters($password) && !hasSequentialDigits($password);
+}
+
+function calculateExpiryDate(): string
+{
+    // Рассчитываем новую дату истечения срока действия пароля через 90 календарных дней
+    return date('Y-m-d', strtotime('+90 days'));
 }
 
 function hasSequentialLetters($password): bool

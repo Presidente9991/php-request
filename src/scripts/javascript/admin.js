@@ -138,7 +138,7 @@ function updateUsersTable() {
 
     // Создаем новый запрос на страницу admin.php, чтобы получить обновленное содержимое таблицы
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', '/src/pages/admin.php', true);
+    xhr.open('GET', '/phprequest/src/pages/admin.php', true);
 
     // Обрабатываем ответ от сервера
     xhr.onreadystatechange = function() {

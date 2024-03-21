@@ -51,6 +51,17 @@ if (isset($_SESSION['user'])) {
         echo '<p class="blocked-message">' . $message . '</p>';
     }
     ?>
+
+    <?php if (isset($_SESSION['reset_password_success'])): ?>
+        <p class="success-message"><?php echo $_SESSION['reset_password_success']; ?></p>
+        <?php unset($_SESSION['reset_password_success']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['reset_password_error'])): ?>
+        <p class="error-message"><?php echo $_SESSION['reset_password_error']; ?></p>
+        <?php unset($_SESSION['reset_password_error']); ?>
+    <?php endif; ?>
+
     <h1 class="main-content-header">Система запроса справок о назначенных суммах</h1>
     <form class="auth-form center" action="/phprequest/src/scripts/php/login.php" method="post">
         <?php

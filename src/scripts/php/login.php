@@ -27,6 +27,27 @@ if ($result) {
     // Проверяем, найден ли пользователь
     if ($user) {
 
+        // Проверяем устарел ли пароль
+        $passwordExpirationDate = strtotime($user['password_expiry_date']); // Дата истечения срока действия пароля
+        $currentDate = time(); // Текущая дата и время
+
+        if (($currentDate > $passwordExpirationDate && !$user['unlimited_password_expiry']) || ($user['unlimited_password_expiry'] === 'f' && $user['password_expiry_date'] !== null && $currentDate > strtotime($user['password_expiry_date']))) {
+            // Перенаправляем пользователя на страницу смены пароля
+            $_SESSION['user_id_to_reset_password'] = $user['users_id'];
+            header('Location: /phprequest/src/pages/reset_password.php');
+            exit();
+        } elseif ($user['unlimited_password_expiry']) {
+            // Перенаправляем на главную страницу
+            $_SESSION['user'] = [
+                "id" => $user['users_id'],
+                "login" => $user['login'],
+                "role_id" => $user['role_id'],
+                "blocked" => ($user['blocked'] === 'FALSE')
+            ];
+            header('Location: /phprequest/src/pages/main.php');
+            exit();
+        }
+
         // Проверяем введенный пароль с хэшем из базы данных
         if (password_verify($password, $user['password'])) {
 
@@ -49,31 +70,6 @@ if ($result) {
                 $_SESSION['user']['blocked'] = ($user['blocked'] === 'f'); // Значение 'f' в базе означает не заблокирован
             }
 
-            // Проверяем установлен ли у пользователя неограниченный срок действия пароля
-            if ($user['unlimited_password_expiry']) {
-                // Устанавливаем данные пользователя в сессию
-                $_SESSION['user'] = [
-                    "id" => $user['users_id'],
-                    "login" => $user['login'],
-                    "role_id" => $user['role_id'],
-                    "blocked" => ($user['blocked'] === 'FALSE')
-                ];
-                // Перенаправляем на главную страницу
-                header('Location: /phprequest/src/pages/main.php');
-                exit();
-            }
-
-            // Проверяем устарел ли пароль
-            $passwordExpirationDate = strtotime($user['password_expiry_date']); // Дата истечения срока действия пароля
-            $currentDate = time(); // Текущая дата и время
-
-            if ($currentDate > $passwordExpirationDate) {
-                // Перенаправляем пользователя на страницу смены пароля
-                $_SESSION['user_id_to_reset_password'] = $user['users_id'];
-                header('Location: /phprequest/src/pages/reset_password.php');
-                exit();
-            }
-
             // Устанавливаем данные пользователя в сессию
             $_SESSION['user'] = [
                 "id" => $user['users_id'],
@@ -81,6 +77,7 @@ if ($result) {
                 "role_id" => $user['role_id'],
                 "blocked" => ($user['blocked'] === 'FALSE')
             ];
+
             // Перенаправляем на главную страницу
             header('Location: /phprequest/src/pages/main.php');
             exit();
