@@ -3,18 +3,20 @@ session_start();
 
 require_once('database.php');
 require_once('unblock_users.php');
+// Разблокировать пользователей при необходимости
 checkAndUnblockUsers();
-var_dump($_POST);
-var_dump($_SESSION);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Проверка, что оба пароля переданы
     if (isset($_POST['new_password'], $_POST['confirm_password'])) {
         $newPassword = $_POST['new_password'];
         $confirmPassword = $_POST['confirm_password'];
 
+        // Проверка, соответствует ли новый пароль требованиям безопасности и не содержит запрещенных последовательностей
         if (!validatePassword($newPassword)) {
-            $_SESSION['reset_password_error'] = 'Новый пароль не соответствует требованиям безопасности';
+            $_SESSION['reset_password_error'] = 'Новый пароль не соответствует требованиям безопасности или содержит запрещенные последовательности символов';
         } elseif ($newPassword !== $confirmPassword) {
+            // Проверка совпадения нового пароля и подтверждения пароля
             $_SESSION['reset_password_error'] = 'Введенные пароли не совпадают';
         } else {
             $db_conn = databaseConnection();
@@ -39,13 +41,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     WHERE users_id = $4";
                     $updateResult = pg_query_params($db_conn, $updateQuery, array($hashedPassword, $currentDate, $expiryDate, $userId));
 
-
                     if ($updateResult) {
+                        // Успешное обновление пароля
                         unset($_SESSION['user_id_to_reset_password']);
                         $_SESSION['reset_password_success'] = 'Пароль успешно изменен';
                         header('Location: /phprequest/index.php');
                         exit();
                     } else {
+                        // Ошибка при обновлении пароля
                         $_SESSION['reset_password_error'] = 'Ошибка при изменении пароля: ' . pg_last_error($db_conn);
                     }
                 } else {
@@ -55,47 +58,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit();
                 }
             } else {
+                // Ошибка при получении информации о пользователе
                 $_SESSION['reset_password_error'] = 'Ошибка при получении информации о пользователе: ' . pg_last_error($db_conn);
             }
         }
     } else {
+        // Недостаточно данных для смены пароля
         $_SESSION['reset_password_error'] = 'Недостаточно данных для смены пароля';
     }
     // Перенаправляем пользователя на страницу смены пароля снова в случае ошибок
-    header('Location: reset_password.php');
+    header('Location: /phprequest/src/pages/reset_password.php');
     exit();
 }
 
+// Проверка пароля на соответствие требованиям
 function validatePassword($password): bool
 {
     $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!"$%&\'()+,\-.\/:;<=>?@\[\]^_{|}~`-])(?!.*[а-яА-Я])(?!.*(.)\1\1\1)(?!.*(\w)\1\1\1)(?!.*\s).{8,}$/';
-    return preg_match($pattern, $password) && !hasSequentialLetters($password) && !hasSequentialDigits($password);
+
+    // Проверка наличия запрещенных последовательностей символов (букв или цифр)
+    $sequences = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', 'йцукенгшщзхъ', 'фывапролджэ', 'ячсмитьбю', '01234567890'];
+
+    foreach ($sequences as $sequence) {
+        if (stripos($password, $sequence) !== false || stripos(strrev($password), strrev($sequence)) !== false) {
+            return false;
+        }
+    }
+
+    return preg_match($pattern, $password);
 }
 
+// Рассчитываем новую дату истечения срока действия пароля через 90 календарных дней
 function calculateExpiryDate(): string
 {
-    // Рассчитываем новую дату истечения срока действия пароля через 90 календарных дней
     return date('Y-m-d', strtotime('+90 days'));
-}
-
-function hasSequentialLetters($password): bool
-{
-    $qwerty = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', 'йцукенгшщзхъ', 'фывапролджэ', 'ячсмитьбю'];
-    foreach ($qwerty as $row) {
-        if (stripos($password, $row) !== false || stripos(strrev($password), strrev($row)) !== false) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function hasSequentialDigits($password): bool
-{
-    $digits = '01234567890';
-    foreach (str_split($digits) as $digit) {
-        if (str_contains($password, str_repeat($digit, 4)) || str_contains(strrev($password), str_repeat(strrev($digit), 4))) {
-            return true;
-        }
-    }
-    return false;
 }

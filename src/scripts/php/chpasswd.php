@@ -10,6 +10,8 @@ if (!isset($_SESSION['user'])) {
 
 require_once('database.php');
 require_once('unblock_users.php');
+
+// Разблокировать пользователей при необходимости
 checkAndUnblockUsers();
 
 // Проверка, был ли отправлен запрос методом POST
