@@ -9,8 +9,9 @@ if (!isset($_SESSION['user'])) {
 }
 
 require_once('database.php');
-require_once ('unblock_users.php');
+require_once('unblock_users.php');
 checkAndUnblockUsers();
+
 // Проверка, был ли отправлен запрос методом POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Проверка наличия всех необходимых полей
@@ -40,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Получаем информацию о сроке действия пароля для пользователя из базы данных
         $db_conn = databaseConnection();
-        $query = "SELECT unlimited_password_expiry FROM phprequest_schema.users WHERE users_id = $usersId";
-        $result = pg_query($db_conn, $query);
+        $query = "SELECT unlimited_password_expiry FROM phprequest_schema.users WHERE users_id = $1";
+        $result = pg_query_params($db_conn, $query, array($usersId));
 
         if (!$result) {
             $_SESSION['chpasswd_error'] = 'Ошибка при получении информации о пользователе';
@@ -54,21 +55,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Проверяем, является ли пароль бессрочным для данного пользователя
         $unlimitedPasswordExpiry = $userData['unlimited_password_expiry'];
 
-        // Если у пользователя бессрочный пароль, то не устанавливаем срок его действия
-        if ($unlimitedPasswordExpiry == 't') {
-            $passwordExpiryDate = null;
-        } else {
-            // Устанавливаем срок действия пароля (например, 90 дней с текущей даты)
-            $passwordExpiryDate = date('Y-m-d H:i:s', strtotime($currentDateTime . ' +90 days'));
-        }
+        // Устанавливаем срок действия пароля (например, 90 дней с текущей даты)
+        $passwordExpiryDate = date('Y-m-d H:i:s', strtotime($currentDateTime . ' +90 days'));
 
         // Обновление пароля и даты последнего изменения в базе данных
         $updateQuery = "UPDATE phprequest_schema.users 
-                        SET password = '$hashedPassword', 
-                            password_last_changed_at = '$currentDateTime', 
-                            password_expiry_date = '$passwordExpiryDate' 
-                        WHERE users_id = $usersId";
-        $updateResult = pg_query($db_conn, $updateQuery);
+                        SET password = $1, 
+                            password_last_changed_at = $2, 
+                            password_expiry_date = $3 
+                        WHERE users_id = $4";
+        $updateParams = array($hashedPassword, $currentDateTime, $passwordExpiryDate, $usersId);
+
+        // Если у пользователя бессрочный пароль, то устанавливаем большое значение для даты
+        if ($unlimitedPasswordExpiry == 't') {
+            $updateQuery = "UPDATE phprequest_schema.users 
+                            SET password = $1, 
+                                password_last_changed_at = $2, 
+                                password_expiry_date = '9999-12-31 23:59:59' 
+                            WHERE users_id = $3";
+            $updateParams = array($hashedPassword, $currentDateTime, $usersId);
+        }
+
+        $updateResult = pg_query_params($db_conn, $updateQuery, $updateParams);
 
         // Проверяем результат обновления пароля
         if ($updateResult) {
