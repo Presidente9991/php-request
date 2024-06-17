@@ -4,8 +4,10 @@ session_start();
 require_once('database.php');
 require_once('unblock_users.php');
 
+// Проверка и разблокировка пользователей, если необходимо
 checkAndUnblockUsers();
 
+// Проверяем, что переданные логин и пароль не пусты
 if (empty($_POST['login']) || empty($_POST['password'])) {
     $_SESSION['message'] = 'Логин и пароль не могут быть пустыми';
     header('Location: /phprequest/index.php');
@@ -28,6 +30,7 @@ if ($result) {
 
         // Проверка на истечение срока действия пароля
         if (($currentDate > $passwordExpirationDate && !$user['unlimited_password_expiry']) || ($user['unlimited_password_expiry'] === 'f' && $user['password_expiry_date'] !== null && $currentDate > strtotime($user['password_expiry_date']))) {
+            // Перенаправляем пользователя на страницу сброса пароля
             $_SESSION['user_id_to_reset_password'] = $user['users_id'];
             header('Location: /phprequest/src/pages/reset_password.php');
             exit();
