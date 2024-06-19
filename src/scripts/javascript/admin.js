@@ -35,8 +35,8 @@ function checkPasswordRequirements(password) {
     const requirements = {
         'length': password.length >= 8,
         'no-cyrillic': !/[а-яА-Я]/.test(password),
-        'uppercase': /[A-Z]/.test(password),
-        'lowercase': /[a-z]/.test(password),
+        'uppercase': /[A-ZА-Я]/.test(password),
+        'lowercase': /[a-zа-я]/.test(password),
         'number': /\d/.test(password),
         'special': /[!"$%&'()+,\-.\/:;<=>?@\[\]^_{|}~`-]/.test(password),
         'no-sequential': !(hasSequentialLetters(password) || hasSequentialDigits(password)),
@@ -63,13 +63,6 @@ function checkPasswordRequirements(password) {
     }
 }
 
-// Функция проверки на наличие повторяющихся символов
-//function hasRepeatingCharacters(password) {
-//    const repeatingCharsPattern = /(.)(\1{3,})/;
-//    return repeatingCharsPattern.test(password);
-//}
-
-// Функция проверки на 4 идущих подряд букв (в прямом и обратном направлении)
 function hasSequentialLetters(password) {
     const qwerty = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', 'йцукенгшщзхъ', 'фывапролджэ', 'ячсмитьбю'];
     for (let i = 0; i < qwerty.length; i++) {
@@ -83,6 +76,7 @@ function hasSequentialLetters(password) {
     // Проверка на кириллические символы
     return /(.)\1{3}/.test(password.toLowerCase());
 }
+
 
 // Функция проверки на 4 идущих подряд цифры
 function hasSequentialDigits(password) {
