@@ -1,163 +1,151 @@
 <?php
 session_start();
 require_once('database.php');
-require_once('check_request_status.php');
+require_once('unblock_users.php');
+checkAndUnblockUsers();
 
-// Проверяем, авторизован ли пользователь
 if (!isset($_SESSION['user'])) {
-    // Если пользователь не авторизован, перенаправляем его на страницу входа
     header('Location: /phprequest/index.php');
     exit();
 }
 
-// Получаем данные авторизованного пользователя из сессии
-$userRole = $_SESSION['user']['role_id'];
-$userLogin = $_SESSION['user']['login'];
+if (isset($_GET['users_id']) && is_numeric($_GET['users_id'])) {
+    $userId = $_GET['users_id'];
+    $_SESSION['current_users_id'] = $userId;
 
-// Проверяем, был ли передан идентификатор запроса
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['requests_id'])) {
-    $requestId = pg_escape_string(databaseConnection(), $_GET['requests_id']);
+    $db_conn = databaseConnection();
+    $query = "SELECT u.*, r.name_user_role 
+              FROM phprequest_schema.users u
+              JOIN phprequest_schema.users_roles r ON u.role_id = r.id_user_role
+              WHERE users_id = $1";
+    $result = pg_query_params($db_conn, $query, array($userId));
 
-    // Выполняем запрос к базе данных для получения информации о запросе
-    $query = "SELECT * FROM phprequest_schema.requests WHERE requests_id = $1";
-    $result = pg_query_params(databaseConnection(), $query, array($requestId));
-
-    // Проверяем, был ли найден запрос с указанным ID
-    if ($result && pg_num_rows($result) > 0) {
-        $requestData = pg_fetch_assoc($result);
-
-        // Проверяем, имеет ли пользователь право редактировать запрос
-        // Пользователь с логином "Requester" или с ролью 1 (Администратор) имеют доступ на редактирование
-        if ($userLogin === 'Requester' || ($userRole == 1 || ($userRole == 2 && $requestData['request_status_id'] == 1))) {
-            // Отображаем форму для редактирования запроса
-            // Данные из базы данных используются для заполнения полей формы
-            ?>
-
-            <!DOCTYPE html>
-            <html lang="ru">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <link rel="stylesheet" href="/phprequest/src/styles/edit_request.css">
-                <title>Редактировать запрос</title>
-            </head>
-            <body>
-            <header class="header-section center">
-                <h1 class="header-content-header">Редактировать запрос</h1>
-            </header>
-            <article class="article-section center">
-                <section class="main-section-content">
-                    <?php
-                    // Выводим ошибку, если таковая была установлена
-                    if (isset($_SESSION['edit_request_error'])) {
-                        echo "<p class='error-message'>Ошибка: {$_SESSION['edit_request_error']}</p>";
-                        unset($_SESSION['edit_request_error']);
-                    }
-                    if(isset($_SESSION['edit_request_success'])) {
-                        echo "<p class='success-message'> {$_SESSION['edit_request_success']}</p>";
-                        unset($_SESSION['edit_request_success']);
-                    }
-                    ?>
-                    <form class="edit-request-form" action="update_request.php" method="post" enctype="multipart/form-data">
-                        <label for="snils_citizen">СНИЛС гражданина:</label>
-                        <input type="text" id="snils_citizen" name="snils_citizen" value="<?php echo $requestData['snils_citizen']; ?>" required>
-
-                        <label for="last_name_citizen">Фамилия гражданина:</label>
-                        <input type="text" id="last_name_citizen" name="last_name_citizen" value="<?php echo $requestData['last_name_citizen']; ?>" required>
-
-                        <label for="first_name_citizen">Имя гражданина:</label>
-                        <input type="text" id="first_name_citizen" name="first_name_citizen" value="<?php echo $requestData['first_name_citizen']; ?>" required>
-
-                        <label for="middle_name_citizen">Отчество гражданина:</label>
-                        <input type="text" id="middle_name_citizen" name="middle_name_citizen" value="<?php echo $requestData['middle_name_citizen']; ?>">
-
-                        <label for="birthday_citizen">Дата рождения гражданина:</label>
-                        <input type="date" id="birthday_citizen" name="birthday_citizen" value="<?php echo $requestData['birthday_citizen']; ?>" required min="1900-01-01" max="2100-12-31">
-
-                        <label for="requested_date_start">Дата начала запрашиваемого периода:</label>
-                        <input type="date" id="requested_date_start" name="requested_date_start" value="<?php echo $requestData['requested_date_start']; ?>" required min="1900-01-01" max="2100-12-31">
-
-                        <label for="requested_date_end">Дата окончания запрашиваемого периода:</label>
-                        <input type="date" id="requested_date_end" name="requested_date_end" value="<?php echo $requestData['requested_date_end']; ?>" required min="1900-01-01" max="2100-12-31">
-
-                        <?php if ($userRole != 2): ?>
-                            <label for="request_status_id">Статус запроса:</label>
-                            <select id="request_status_id" name="request_status_id" required>
-                                <?php
-                                // Запрос для получения текстовых обозначений статусов запросов из базы данных
-                                $statusQuery = "SELECT request_statuses.request_statuses_id, status_text FROM phprequest_schema.request_statuses WHERE request_statuses_id != 1"; // Исключаем статус "Запрос создан"
-                                $statusResult = pg_query(databaseConnection(), $statusQuery);
-
-                                if ($statusResult) {
-                                    // Выводим каждый вариант статуса в виде опции выпадающего списка
-                                    while ($row = pg_fetch_assoc($statusResult)) {
-                                        $selected = ($row['request_statuses_id'] == $requestData['request_status_id']) ? 'selected' : '';
-                                        echo "<option value=\"{$row['request_statuses_id']}\" $selected>{$row['status_text']}</option>";
-                                    }
-                                }
-                                ?>
-                            </select>
-                        <?php endif; ?>
-
-                        <?php if ($userRole != 2): ?>
-                            <label for="file_upload">Загрузить новый файл:</label>
-                            <input type="file" id="file_upload" name="file_upload">
-                        <?php endif; ?>
-
-                        <input type="hidden" name="requests_id" value="<?php echo $requestId; ?>">
-                        <button class="apply-changes" type="submit">Применить изменения в запрос</button>
-                    </form>
-                </section>
-                <section class="main-section-content center">
-                    <div class="saved-file">
-                        <?php if (!empty($requestData['download_link']) && $userRole != 2): ?>
-                            <label class="saved-file-header">Действия с сохранённым файлом:</label>
-                            <a class="download-file-link" href="<?php echo $requestData['download_link']; ?>" target="_blank">Скачать сохранённый файл</a>
-                            <form action="update_request.php" method="post">
-                                <input type="hidden" name="delete_file" value="true">
-                                <input type="hidden" name="requests_id" value="<?php echo $requestId; ?>">
-                                <button class="delete-file" type="submit">Удалить сохранённый файл</button>
-                            </form>
-                        <?php endif; ?>
-                    </div>
-                </section>
-            </article>
-            <footer class="footer-section center">
-                <a class="back-to-main-page-link" href="/phprequest/src/pages/main.php">Назад на главную страницу</a>
-            </footer>
-            <script>
-                document.getElementById('snils_citizen').addEventListener('input', function(e) {
-                    let value = e.target.value.replace(/\D/g, '');
-                    if (value.length > 11) {
-                        value = value.substring(0, 11); // Ограничиваем ввод 11 символами
-                    }
-                    if (value.length > 2 && value.length < 6) {
-                        value = value.replace(/^(\d{3})(\d{0,3}).*/, '$1-$2');
-                    } else if (value.length >= 6 && value.length < 9) {
-                        value = value.replace(/^(\d{3})(\d{3})(\d{0,3}).*/, '$1-$2-$3');
-                    } else if (value.length >= 9) {
-                        value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2}).*/, '$1-$2-$3-$4');
-                    }
-                    e.target.value = value;
-                });
-            </script>
-            </body>
-            </html>
-
-            <?php
-        } else {
-            $_SESSION['edit_request_error'] = 'У вас нет прав на редактирование этого запроса';
-            header('Location: /phprequest/index.php');
-            exit();
-        }
-    } else {
-        $_SESSION['edit_request_error'] = 'Запрос с указанным ID не найден';
-        header('Location: /phprequest/index.php');
+    if (!$result) {
+        $_SESSION['edit_user_error'] = 'Ошибка при получении информации о пользователе';
+        header('Location: /phprequest/src/pages/admin.php');
         exit();
     }
+
+    if (pg_num_rows($result) === 0) {
+        $_SESSION['edit_user_error'] = 'Пользователь не найден';
+        header('Location: /phprequest/src/pages/admin.php');
+        exit();
+    }
+
+    $user = pg_fetch_assoc($result);
+    $unlimited_password_expiry = $user['unlimited_password_expiry'] === 't';
+    $blocked = $user['blocked'] === 't';
+    $blocked_until = $user['blocked_until'] ? date('Y-m-d\TH:i', strtotime($user['blocked_until'])) : '';
 } else {
-    $_SESSION['edit_request_error'] = 'Необходимо указать ID запроса для редактирования';
-    header('Location: /phprequest/index.php');
+    $_SESSION['edit_user_error'] = 'Некорректный идентификатор пользователя';
+    header('Location: /phprequest/src/pages/admin.php');
     exit();
 }
+?>
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/phprequest/src/styles/edit_user.css">
+    <title>Редактирование пользователя</title>
+</head>
+<body>
+<header class="header-section center">
+    <?php
+    if (isset($_SESSION['update_user_success'])) {
+        echo "<p class='success-message'>{$_SESSION['update_user_success']}</p>";
+        unset($_SESSION['update_user_success']);
+    } elseif (isset($_SESSION['update_user_error'])) {
+        echo "<p class='error-message'>{$_SESSION['update_user_error']}</p>";
+        unset($_SESSION['update_user_error']);
+    }
+    ?>
+    <h1 class="header-content-header">Редактирование данных пользователя</h1>
+    <?php if (isset($_SESSION['edit_user_error'])): ?>
+        <p class="error-message"><?php echo $_SESSION['edit_user_error']; ?></p>
+        <?php unset($_SESSION['edit_user_error']); ?>
+    <?php endif; ?>
+    <form class="update-user-form" action="/phprequest/src/scripts/php/update_user.php" method="post">
+        <input type="hidden" name="users_id" value="<?php echo $userId; ?>">
+        <label for="login">Логин:</label>
+        <input type="text" id="login" name="login" value="<?php echo $user['login']; ?>" required>
+        <label for="employee_last_name">Фамилия:</label>
+        <input type="text" id="employee_last_name" name="employee_last_name" value="<?php echo $user['employee_last_name']; ?>" required>
+        <label for="employee_first_name">Имя:</label>
+        <input type="text" id="employee_first_name" name="employee_first_name" value="<?php echo $user['employee_first_name']; ?>" required>
+        <label for="employee_middle_name">Отчество (при наличии):</label>
+        <input type="text" id="employee_middle_name" name="employee_middle_name" value="<?php echo $user['employee_middle_name']; ?>">
+        <label for="role_id">Группа пользователя:</label>
+        <select id="role_id" name="role_id">
+            <?php
+            $roleQuery = "SELECT id_user_role, name_user_role FROM phprequest_schema.users_roles";
+            $roleResult = pg_query($db_conn, $roleQuery);
+            if ($roleResult) {
+                while ($role = pg_fetch_assoc($roleResult)) {
+                    $selected = ($role['id_user_role'] == $user['role_id']) ? 'selected' : '';
+                    echo "<option value='{$role['id_user_role']}' $selected>{$role['name_user_role']}</option>";
+                }
+            }
+            ?>
+        </select>
+        <label for="unlimited_password_expiry">Сделать текущий пароль бессрочным?
+            <input type="checkbox" id="unlimited_password_expiry" name="unlimited_password_expiry" <?php echo $unlimited_password_expiry ? 'checked' : ''; ?>>
+        </label>
+
+        <button class="update-user-button" type="submit">Сохранить изменения</button>
+    </form>
+</header>
+
+<article class="article-section center">
+    <section class="main-section-content">
+        <h1 class="main-content-header">Управление блокировкой/разблокировкой пользователя</h1>
+        <?php if (isset($_SESSION['update_user_blocked_error'])): ?>
+            <p class="error-message"><?php echo $_SESSION['update_user_blocked_error']; ?></p>
+            <?php unset($_SESSION['update_user_blocked_error']); ?>
+        <?php endif; ?>
+        <?php if (isset($_SESSION['update_user_blocked_success'])): ?>
+            <p class="success-message"><?php echo $_SESSION['update_user_blocked_success']; ?></p>
+            <?php unset($_SESSION['update_user_blocked_success']); ?>
+        <?php endif; ?>
+        <form class="block-unblock-users-form" action="/phprequest/src/scripts/php/update_user_blocked.php" method="post">
+            <input type="hidden" name="users_id" value="<?php echo $userId; ?>">
+            <label for="blocked"><span class="block-unblock-users-form-warning">Отсутствие галочки снимет блокировку!</span><br> Установить блокировку?</label>
+            <input type="checkbox" id="blocked" name="blocked" <?php echo $blocked ? 'checked' : ''; ?>>
+            <label for="blocked_until"><span class="block-unblock-users-form-warning">Пустая графа будет означать бессрочную блокировку!</span><br>Установить время до разблокировки?</label>
+            <input type="datetime-local" id="blocked_until" name="blocked_until" value="<?php echo $blocked_until; ?>">
+            <button class="update-block-unblock-status-button" type="submit">Применить изменения</button>
+        </form>
+    </section>
+    <section class="main-section-content">
+        <h1 class="main-content-header">Изменение пароля пользователя</h1>
+        <?php if (isset($_SESSION['chpasswd_success'])): ?>
+            <p class="success-message"><?php echo $_SESSION['chpasswd_success']; ?></p>
+            <?php unset($_SESSION['chpasswd_success']); ?>
+        <?php endif; ?>
+        <?php if (isset($_SESSION['chpasswd_error'])): ?>
+            <p class="error-message"><?php echo $_SESSION['chpasswd_error']; ?></p>
+            <?php unset($_SESSION['chpasswd_error']); ?>
+        <?php endif; ?>
+        <form class="change-password-form" action="/phprequest/src/scripts/php/chpasswd.php" method="post" id="change-password-form">
+            <input type="hidden" name="users_id" value="<?php echo $userId; ?>">
+            <label for="new-password">Новый пароль:</label>
+            <input type="password" id="new-password" name="new-password" placeholder="Введите новый пароль" required>
+            <label for="new-password-check">Подтверждение пароля:</label>
+            <input type="password" id="new-password-check" name="new-password-check" placeholder="Введите пароль ещё раз" required>
+            <button class="update-user-password-button" type="submit">Изменить пароль</button>
+        </form>
+    </section>
+</article>
+
+<footer class="footer-section center">
+    <a href="/phprequest/src/pages/admin.php" class="back-to-admin-page-link">Вернуться на страницу администрирования</a>
+</footer>
+</body>
+</html>
+
+<?php
+// Закрываем соединение с базой данных
+pg_close($db_conn);
 ?>

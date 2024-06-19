@@ -69,7 +69,7 @@ if (!empty($blockedUntil) || $blocked) {
 // Выполняем запрос к базе данных для обновления статуса блокировки пользователя
 $db_conn = databaseConnection();
 
-// Формируем запрос с использованием параметров
+// Формируем запрос к базе данных для обновления статуса блокировки пользователя
 $query = "UPDATE phprequest_schema.users 
           SET blocked = $1, blocked_until = $2 
           WHERE users_id = $3";
@@ -87,7 +87,6 @@ $result = pg_query_params($db_conn, $query, $params);
 
 // Проверяем результат выполнения запроса
 if ($result) {
-
     // Обновляем значение сессионной переменной ['blocked'] в зависимости от значения $blocked
     $_SESSION['user']['blocked'] = $blocked;
 
