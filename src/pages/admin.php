@@ -39,8 +39,6 @@ $query = "SELECT u.*, r.name_user_role,
          JOIN phprequest_schema.users_roles r ON u.role_id = r.id_user_role
          ORDER BY u.users_id DESC";
 
-
-
 $result = pg_query($db_conn, $query);
 
 // Собираем данные в массив
