@@ -81,10 +81,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['requests_id'])) {
                         <?php if ($userRole != 2): ?>
                             <label for="request_status_id">Статус запроса:</label>
                             <select id="request_status_id" name="request_status_id" required>
-                        <?php
-                        // Запрос для получения текстовых обозначений статусов запросов из базы данных
-                        $statusQuery = "SELECT request_statuses.request_statuses_id, status_text FROM phprequest_schema.request_statuses WHERE request_statuses_id != 1"; // Исключаем статус "Запрос создан"
-                        $statusResult = pg_query(databaseConnection(), $statusQuery);
+                                <?php
+                                // Запрос для получения текстовых обозначений статусов запросов из базы данных
+                                $statusQuery = "SELECT request_statuses.request_statuses_id, status_text FROM phprequest_schema.request_statuses WHERE request_statuses_id != 1"; // Исключаем статус "Запрос создан"
+                                $statusResult = pg_query(databaseConnection(), $statusQuery);
 
                                 if ($statusResult) {
                                     // Выводим каждый вариант статуса в виде опции выпадающего списка

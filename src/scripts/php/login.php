@@ -63,6 +63,9 @@ if ($result) {
                 "id" => $user['users_id'],
                 "login" => $user['login'],
                 "role_id" => $user['role_id'],
+                "first_name" => $user['employee_first_name'],
+                "middle_name" => $user['employee_middle_name'],
+                "last_name" => $user['employee_last_name'],
                 "blocked" => ($user['blocked'] === 'FALSE')
             ];
 
