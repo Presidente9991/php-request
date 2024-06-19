@@ -29,19 +29,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requests_id']) && !is
 
     // Определяем статус запроса в зависимости от наличия или отсутствия файла в download_link
     if (!empty($_FILES['file_upload']['name'])) {
-        $requestStatusId = 3; // Если файл загружен, статус запроса становится "Ответ по запросу получен и обрабатывается"
+        // Если файл загружен, статус запроса становится "Ответ обработан. Запрос закрыт"
+        $requestStatusId = 4;
     } else {
-        // Получаем текущий статус запроса
-        $currentStatusQuery = "SELECT request_status_id FROM phprequest_schema.requests WHERE requests_id = '$requestId'";
+        // Если файл не загружен, определяем текущий статус запроса
+        $currentStatusQuery = "SELECT request_status_id, download_link FROM phprequest_schema.requests WHERE requests_id = '$requestId'";
         $currentStatusResult = pg_query(databaseConnection(), $currentStatusQuery);
+
         if ($currentStatusResult && pg_num_rows($currentStatusResult) > 0) {
             $row = pg_fetch_assoc($currentStatusResult);
             $currentStatus = $row['request_status_id'];
-            // Если текущий статус запроса равен 1 (Запрос создан) и пользователь с ролью 2 (Пользователь), то оставляем статус без изменений
-            if ($currentStatus == 1 && $_SESSION['user']['role_id'] == 2) {
-                $requestStatusId = 1;
+            $downloadLink = $row['download_link'];
+
+            if ($downloadLink !== null) {
+                // Если есть ссылка на файл, статус запроса сначала "Ответ по запросу получен и обрабатывается"
+                $requestStatusId = 3;
             } else {
-                $requestStatusId = 4; // Если файла нет и download_link не NULL, статус запроса становится "Ответ обработан. Запрос закрыт"
+                // Если нет ссылки на файл, статус запроса "Запрос принят в работу администратором"
+                $requestStatusId = 2;
             }
         }
     }
@@ -161,27 +166,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requests_id']) && !is
         $filePath = $_SERVER['DOCUMENT_ROOT'] . $row['download_link'];
 
         // Удаляем файл, если он существует
-        if (file_exists($filePath)) {
+        if (file_exists($filePath) && !empty($row['download_link'])) {
             if (unlink($filePath)) {
-                // Обновляем ссылку на файл в базе данных на NULL
-                $queryDeleteFile = "UPDATE phprequest_schema.requests SET download_link = NULL WHERE requests_id = '$requestId'";
-                $resultDeleteFile = pg_query(databaseConnection(), $queryDeleteFile);
-                if (!$resultDeleteFile) {
-                    $_SESSION['edit_request_error'] = 'Ошибка при удалении ссылки на файл';
+                // Успешно удалили файл, обновляем ссылку и статус
+                if (updateRequestFileLinkAndStatus($requestId)) {
+                    $_SESSION['edit_request_success'] = 'Файл успешно удален и статус запроса изменен';
                 } else {
-                    $_SESSION['edit_request_success'] = 'Файл успешно удален';
+                    $_SESSION['edit_request_error'] = 'Ошибка при обновлении статуса запроса';
                 }
             } else {
                 $_SESSION['edit_request_error'] = 'Ошибка при удалении файла';
             }
         } else {
             // Если файла нет, обновляем ссылку на файл в базе данных на NULL
-            $queryDeleteFile = "UPDATE phprequest_schema.requests SET download_link = NULL WHERE requests_id = '$requestId'";
-            $resultDeleteFile = pg_query(databaseConnection(), $queryDeleteFile);
-            if (!$resultDeleteFile) {
-                $_SESSION['edit_request_error'] = 'Ошибка при удалении ссылки на файл';
+            if (updateRequestFileLinkAndStatus($requestId)) {
+                $_SESSION['edit_request_success'] = 'Файл успешно удален и статус запроса изменен';
             } else {
-                $_SESSION['edit_request_success'] = 'Файл успешно удален';
+                $_SESSION['edit_request_error'] = 'Ошибка при обновлении статуса запроса';
             }
         }
     } else {
@@ -189,6 +190,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requests_id']) && !is
     }
 } else {
     $_SESSION['edit_request_error'] = 'Некорректный запрос';
+}
+
+// Функция для обновления ссылки на файл и статуса запроса
+function updateRequestFileLinkAndStatus($requestId) {
+    $queryDeleteFile = "UPDATE phprequest_schema.requests SET download_link = NULL WHERE requests_id = '$requestId'";
+    $resultDeleteFile = pg_query(databaseConnection(), $queryDeleteFile);
+    if ($resultDeleteFile) {
+        $queryUpdateStatus = "UPDATE phprequest_schema.requests SET request_status_id = 4 WHERE requests_id = '$requestId'";
+        return pg_query(databaseConnection(), $queryUpdateStatus);
+    }
+    return false;
 }
 
 // Перенаправляем пользователя на страницу редактирования запроса
