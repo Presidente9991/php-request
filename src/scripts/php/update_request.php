@@ -3,7 +3,7 @@ session_start();
 require_once('database.php');
 require_once('check_request_status.php');
 
-// Проверить, авторизован ли пользователь
+// Проверяем, авторизован ли пользователь
 if (!isset($_SESSION['user'])) {
     // Если пользователь не авторизован, перенаправляем его на страницу входа
     header('Location: /phprequest/index.php');
@@ -85,22 +85,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requests_id']) && !is
         exit();
     }
 
-    // Проверяем MIME-тип загруженного файла
-    if(isset($_FILES['file_upload']) && $_FILES['file_upload']['error'] === UPLOAD_ERR_OK) {
-        $allowedMimeTypes = ['application/pdf', 'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.spreadsheet', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+    // Получаем текущую ссылку на файл из базы данных
+    $queryGetFile = "SELECT download_link FROM phprequest_schema.requests WHERE requests_id = '$requestId'";
+    $resultGetFile = pg_query(databaseConnection(), $queryGetFile);
 
-        // Получаем MIME-тип файла
-        $fileMimeType = mime_content_type($_FILES['file_upload']['tmp_name']);
+    if ($resultGetFile && pg_num_rows($resultGetFile) > 0) {
+        $row = pg_fetch_assoc($resultGetFile);
+        $filePath = $_SERVER['DOCUMENT_ROOT'] . $row['download_link'];
 
-        // Проверяем, соответствует ли MIME-тип разрешенным типам
-        if (!in_array($fileMimeType, $allowedMimeTypes)) {
-            $_SESSION['edit_request_error'] = 'Недопустимый формат файла. Разрешены только PDF, ODT, ODS, DOC, DOCX, XLS и XLSX.';
-            header('Location: /phprequest/src/scripts/php/edit_request.php?requests_id=' . $requestId);
-            exit();
+        // Удаляем предыдущий файл, если он существует
+        if (!empty($row['download_link']) && file_exists($filePath)) {
+            if (unlink($filePath)) {
+                // Успешно удалили предыдущий файл
+                $_SESSION['edit_request_success'] = 'Предыдущий файл успешно удален';
+            } else {
+                $_SESSION['edit_request_error'] = 'Ошибка при удалении предыдущего файла';
+                header('Location: /phprequest/src/scripts/php/edit_request.php?requests_id=' . $requestId);
+                exit();
+            }
         }
     }
 
-    // Если файл не был удален или не было ошибок, обновляем данные запроса с возможной загрузкой файла
     // Тогда выполняем запрос на обновление данных запроса
     $query = "UPDATE phprequest_schema.requests 
         SET snils_citizen = '$snils',
@@ -110,99 +115,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requests_id']) && !is
             birthday_citizen = '$birthday',
             requested_date_start = '$startDate',
             requested_date_end = '$endDate',
-            request_status_id = '$requestStatusId'
-        WHERE requests_id = '$requestId'";
+            request_status_id = '$requestStatusId'";
 
+    // Если файл был загружен
+    if(isset($_FILES['file_upload']) && $_FILES['file_upload']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = '/phprequest/documents/'; // Каталог для сохранения загруженных файлов
+        $uploadFile = $uploadDir . basename($_FILES['file_upload']['name']);
+
+        // Генерируем уникальное имя файла
+        $uniqueFileName = uniqid() . '_' . $_FILES['file_upload']['name'];
+        $uploadFile = $uploadDir . $uniqueFileName;
+
+        // Перемещаем загруженный файл в указанную директорию
+        if(move_uploaded_file($_FILES['file_upload']['tmp_name'], $_SERVER['DOCUMENT_ROOT'] . $uploadFile)) {
+            // Добавляем поле download_link к запросу
+            $query .= ", download_link = '$uploadFile'";
+        } else {
+            $_SESSION['edit_request_error'] = 'Ошибка при загрузке файла на сервер';
+            header('Location: /phprequest/src/scripts/php/edit_request.php?requests_id=' . $requestId);
+            exit();
+        }
+    }
+
+    // Дополняем запрос условием WHERE
+    $query .= " WHERE requests_id = '$requestId'";
     $result = pg_query(databaseConnection(), $query);
 
+    // Проверяем результат выполнения запроса
     if ($result) {
-        // Если файл был загружен
-        if(isset($_FILES['file_upload']) && $_FILES['file_upload']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = '/phprequest/documents/'; // Каталог для сохранения загруженных файлов
-            $uploadFile = $uploadDir . basename($_FILES['file_upload']['name']);
-
-            // Генерируем уникальное имя файла
-            $uniqueFileName = uniqid() . '_' . $_FILES['file_upload']['name'];
-            $uploadFile = $uploadDir . $uniqueFileName;
-
-            // Перемещаем загруженный файл в указанную директорию
-            if(move_uploaded_file($_FILES['file_upload']['tmp_name'], $_SERVER['DOCUMENT_ROOT'] . $uploadFile)) {
-                // Сохраняем уникальное имя файла в базе данных и обновляем запись в базе данных с путём к загруженному файлу
-                $queryUpdateFile = "UPDATE phprequest_schema.requests SET download_link = '$uploadFile' WHERE requests_id = '$requestId'";
-                $resultUpdateFile = pg_query(databaseConnection(), $queryUpdateFile);
-                if(!$resultUpdateFile) {
-                    $_SESSION['edit_request_error'] = 'Ошибка при обновлении пути к файлу';
-                    header('Location: /phprequest/src/scripts/php/edit_request.php?requests_id=' . $requestId);
-                    exit();
-                }
-            } else {
-                $_SESSION['edit_request_error'] = 'Ошибка при загрузке файла';
-                header('Location: /phprequest/src/scripts/php/edit_request.php?requests_id=' . $requestId);
-                exit();
-            }
-        }
-
-        // Проверяем, если статус запроса был установлен в 3 (Ответ по запросу получен и обрабатывается),
-        // то устанавливаем статус 4 (Ответ обработан. Запрос закрыт), если файл был загружен
-        if ($requestStatusId == 3) {
-            // Получаем ссылку на файл из базы данных
-            $queryGetFile = "SELECT download_link FROM phprequest_schema.requests WHERE requests_id = '$requestId'";
-            $resultGetFile = pg_query(databaseConnection(), $queryGetFile);
-            if ($resultGetFile && pg_num_rows($resultGetFile) > 0) {
-                $row = pg_fetch_assoc($resultGetFile);
-                if ($row['download_link'] !== null) {
-                    $queryUpdateStatus = "UPDATE phprequest_schema.requests SET request_status_id = 4 WHERE requests_id = '$requestId'";
-                    $resultUpdateStatus = pg_query(databaseConnection(), $queryUpdateStatus);
-                    if (!$resultUpdateStatus) {
-                        $_SESSION['edit_request_error'] = 'Ошибка при обновлении статуса запроса';
-                        header('Location: /phprequest/src/scripts/php/edit_request.php?requests_id=' . $requestId);
-                        exit();
-                    }
-                }
-            }
-        }
         $_SESSION['edit_request_success'] = 'Данные запроса успешно обновлены';
     } else {
-        $_SESSION['edit_request_error'] = 'Ошибка при обновлении данных запроса' .pg_last_error(databaseConnection());
+        $_SESSION['edit_request_error'] = 'Ошибка при обновлении данных запроса: ' . pg_last_error(databaseConnection());
     }
-}
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requests_id']) && isset($_POST['delete_file'])) {
+    // Пользователь запросил удаление файла
 
-// Проверить, был ли отправлен POST-запрос для удаления файла
-else if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requests_id']) && isset($_POST['delete_file'])) {
     $requestId = pg_escape_string(databaseConnection(), $_POST['requests_id']);
 
-    // Получить ссылку на файл из базы данных
+    // Получаем текущую ссылку на файл из базы данных
     $queryGetFile = "SELECT download_link FROM phprequest_schema.requests WHERE requests_id = '$requestId'";
     $resultGetFile = pg_query(databaseConnection(), $queryGetFile);
+
     if ($resultGetFile && pg_num_rows($resultGetFile) > 0) {
         $row = pg_fetch_assoc($resultGetFile);
         $filePath = $_SERVER['DOCUMENT_ROOT'] . $row['download_link'];
 
-        // Удалить файл, если он существует
+        // Удаляем файл, если он существует
         if (file_exists($filePath)) {
             if (unlink($filePath)) {
-                $_SESSION['edit_request_success'] = 'Файл успешно удален';
+                // Обновляем ссылку на файл в базе данных на NULL
+                $queryDeleteFile = "UPDATE phprequest_schema.requests SET download_link = NULL WHERE requests_id = '$requestId'";
+                $resultDeleteFile = pg_query(databaseConnection(), $queryDeleteFile);
+                if (!$resultDeleteFile) {
+                    $_SESSION['edit_request_error'] = 'Ошибка при удалении ссылки на файл';
+                } else {
+                    $_SESSION['edit_request_success'] = 'Файл успешно удален';
+                }
             } else {
                 $_SESSION['edit_request_error'] = 'Ошибка при удалении файла';
             }
         } else {
-            $_SESSION['edit_request_error'] = 'Файл не найден';
+            // Если файла нет, обновляем ссылку на файл в базе данных на NULL
+            $queryDeleteFile = "UPDATE phprequest_schema.requests SET download_link = NULL WHERE requests_id = '$requestId'";
+            $resultDeleteFile = pg_query(databaseConnection(), $queryDeleteFile);
+            if (!$resultDeleteFile) {
+                $_SESSION['edit_request_error'] = 'Ошибка при удалении ссылки на файл';
+            } else {
+                $_SESSION['edit_request_success'] = 'Файл успешно удален';
+            }
         }
     } else {
         $_SESSION['edit_request_error'] = 'Ошибка при получении ссылки на файл';
     }
-
-
-    // Удалить ссылку на файл из базы данных
-    $queryDeleteFile = "UPDATE phprequest_schema.requests SET download_link = NULL WHERE requests_id = '$requestId'";
-    $resultDeleteFile = pg_query(databaseConnection(), $queryDeleteFile);
-    if (!$resultDeleteFile) {
-        $_SESSION['edit_request_error'] = 'Ошибка при удалении ссылки на файл';
-    } else {
-        $_SESSION['edit_request_success'] = 'Файл успешно удален';
-    }
+} else {
+    $_SESSION['edit_request_error'] = 'Некорректный запрос';
 }
 
-// Редирект на страницу, откуда была отправлена форма
+// Перенаправляем пользователя на страницу редактирования запроса
 header('Location: /phprequest/src/scripts/php/edit_request.php?requests_id=' . $requestId);
 exit();

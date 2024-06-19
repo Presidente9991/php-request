@@ -2,6 +2,7 @@
 session_start();
 require_once('database.php');
 require_once('check_request_status.php');
+
 // Проверяем, авторизован ли пользователь
 if (!isset($_SESSION['user'])) {
     // Если пользователь не авторизован, перенаправляем его на страницу входа
@@ -135,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['requests_id'])) {
                     } else if (value.length >= 6 && value.length < 9) {
                         value = value.replace(/^(\d{3})(\d{3})(\d{0,3}).*/, '$1-$2-$3');
                     } else if (value.length >= 9) {
-                        value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2}).*/, '$1-$2-$3 $4');
+                        value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2}).*/, '$1-$2-$3-$4');
                     }
                     e.target.value = value;
                 });
@@ -144,16 +145,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['requests_id'])) {
             </html>
 
             <?php
-            exit();
         } else {
-            $_SESSION['edit_request_error'] = 'У вас нет прав на редактирование запросов';
+            $_SESSION['edit_request_error'] = 'У вас нет прав на редактирование этого запроса';
+            header('Location: /phprequest/index.php');
+            exit();
         }
     } else {
         $_SESSION['edit_request_error'] = 'Запрос с указанным ID не найден';
+        header('Location: /phprequest/index.php');
+        exit();
     }
+} else {
+    $_SESSION['edit_request_error'] = 'Необходимо указать ID запроса для редактирования';
+    header('Location: /phprequest/index.php');
+    exit();
 }
-
-// Если скрипт дошел до этой точки, значит что-то пошло не так или пользователь не имеет прав на редактирование запроса
-header('Location: /phprequest/src/pages/main.php');
-exit();
 ?>
