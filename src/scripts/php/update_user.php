@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['users_id'], $_POST['login'], $_POST['employee_first_name'], $_POST['employee_last_name'], $_POST['role_id'])) {
         // Получаем и экранируем данные из POST-запроса
         $userId = pg_escape_string(databaseConnection(), $_POST['users_id']);
-        $login = trim(pg_escape_string(databaseConnection(), $_POST['login'])); // Удаляем пробелы в начале и в конце строки
+        $login = trim($_POST['login']); // Удаляем пробелы в начале и в конце строки
         $firstName = trim(pg_escape_string(databaseConnection(), $_POST['employee_first_name'])); // Удаляем пробелы в начале и в конце строки
         $lastName = trim(pg_escape_string(databaseConnection(), $_POST['employee_last_name'])); // Удаляем пробелы в начале и в конце строки
         $middleName = isset($_POST['employee_middle_name']) ? trim(pg_escape_string(databaseConnection(), $_POST['employee_middle_name'])) : null; // Удаляем пробелы в начале и в конце строки
@@ -30,22 +30,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
 
-        // Проверяем, не пустые ли поля "Логин", "Имя" и "Фамилия"
+        // Проверяем логин на допустимые символы
+        if (!preg_match('/^[a-zA-Z0-9!@#$%^&*()\-_]+$/', $login)) {
+            $_SESSION['update_user_error'] = 'Логин может содержать только латинские буквы верхнего и нижнего регистра, цифры и специальные символы (!@#$%^&*()-_).';
+            header("Location: edit_user.php?users_id=$userId");
+            exit();
+        }
+
+        // Проверяем, не пустые ли поля "Имя" и "Фамилия"
         $errorMessage = '';
 
-        if (empty($login)) {
-            $errorMessage .= 'Логин не может быть пустым. ';
-        }
-
-        if (!preg_match('/^[а-яёА-ЯЁ\s-]+$/', $lastName)) {
-            $errorMessage .= 'Фамилия должна содержать только кириллические символы, пробелы и дефисы. ';
-        }
-
-        if (!preg_match('/^[а-яёА-ЯЁ\s-]+$/', $firstName)) {
+        if (empty($firstName)) {
+            $errorMessage .= 'Имя не может быть пустым. ';
+        } elseif (!preg_match('/^[а-яёА-ЯЁ\s-]+$/u', $firstName)) {
             $errorMessage .= 'Имя должно содержать только кириллические символы, пробелы и дефисы. ';
         }
 
-        if (!empty($middleName) && !preg_match('/^[а-яёА-ЯЁ\s-]*$/', $middleName)) {
+        if (empty($lastName)) {
+            $errorMessage .= 'Фамилия не может быть пустой. ';
+        } elseif (!preg_match('/^[а-яёА-ЯЁ\s-]+$/u', $lastName)) {
+            $errorMessage .= 'Фамилия должна содержать только кириллические символы, пробелы и дефисы. ';
+        }
+
+        if (!empty($middleName) && !preg_match('/^[а-яёА-ЯЁ\s-]*$/u', $middleName)) {
             $errorMessage .= 'Отчество должно содержать только кириллические символы, пробелы и дефисы. ';
         }
 
