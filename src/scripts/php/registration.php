@@ -115,7 +115,7 @@ function registerUser($login, $password, $confirmPassword, $firstName, $lastName
 function validatePassword($password): bool
 {
     // Требования к паролю
-    $pattern = '/^(?=.*[a-zA-Zа-яА-Я])(?=.*\d)(?=.*[!"$%&\'()+,\-.\/:;<=>?@\[\]^_{|}~`-])(?!.*(.)\1\1\1)(?!.*(\w)\1\1\1)(?!.*\s).{8,}$/';
+    $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!"$%&\'()+,\-.\/:;<=>?@\[\]^_{|}~`-])(?!.*[а-яА-Я])(?!.*(.)\1\1\1)(?!.*(\w)\1\1\1)(?!.*\s).{8,}$/';
 
     // Проверка на соответствие требованиям
     return preg_match($pattern, $password) && !hasSequentialLetters($password) && !hasSequentialDigits($password);
