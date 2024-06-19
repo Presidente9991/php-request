@@ -26,24 +26,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Проверяем, является ли идентификатор пользователя числом
         if (!is_numeric($userId)) {
             $_SESSION['update_user_error'] = 'Некорректный идентификатор пользователя';
-            header('Location: /phprequest/src/pages/admin.php');
+            header("Location: edit_user.php?users_id=$userId");
             exit();
         }
 
         // Проверяем, не пустые ли поля "Логин", "Имя" и "Фамилия"
-        if (empty($login) || empty($firstName) || empty($lastName)) {
-            $errorMessage = '';
-            if (empty($login)) {
-                $errorMessage .= 'Логин не может быть пустым. ';
-            }
-            if (empty($firstName)) {
-                $errorMessage .= 'Имя не может быть пустым. ';
-            }
-            if (empty($lastName)) {
-                $errorMessage .= 'Фамилия не может быть пустой. ';
-            }
+        $errorMessage = '';
+
+        if (empty($login)) {
+            $errorMessage .= 'Логин не может быть пустым. ';
+        }
+
+        if (!preg_match('/^[а-яёА-ЯЁ\s-]+$/', $lastName)) {
+            $errorMessage .= 'Фамилия должна содержать только кириллические символы, пробелы и дефисы. ';
+        }
+
+        if (!preg_match('/^[а-яёА-ЯЁ\s-]+$/', $firstName)) {
+            $errorMessage .= 'Имя должно содержать только кириллические символы, пробелы и дефисы. ';
+        }
+
+        if (!empty($middleName) && !preg_match('/^[а-яёА-ЯЁ\s-]*$/', $middleName)) {
+            $errorMessage .= 'Отчество должно содержать только кириллические символы, пробелы и дефисы. ';
+        }
+
+        if (!empty($errorMessage)) {
             $_SESSION['update_user_error'] = $errorMessage;
-            header('Location: /phprequest/src/pages/admin.php');
+            header("Location: edit_user.php?users_id=$userId");
             exit();
         }
 
@@ -52,20 +60,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Выполняем запрос на обновление данных пользователя
         $query = "UPDATE phprequest_schema.users 
-          SET login = $1, 
-              employee_first_name = $2, 
-              employee_last_name = $3, 
-              employee_middle_name = $4,
-              role_id = $5,
-              unlimited_password_expiry = $6";
+                  SET login = $1, 
+                      employee_first_name = $2, 
+                      employee_last_name = $3, 
+                      employee_middle_name = $4,
+                      role_id = $5,
+                      unlimited_password_expiry = $6";
 
         // Учитываем параметр unlimited_password_expiry при установке срока действия пароля
         if ($unlimited_password_expiry === 'FALSE') {
             $query .= ", password_last_changed_at = CURRENT_TIMESTAMP,
-                password_expiry_date = CURRENT_TIMESTAMP + interval '90 days'";
+                        password_expiry_date = CURRENT_TIMESTAMP + interval '90 days'";
         } else {
             $query .= ", password_last_changed_at = NULL,
-                password_expiry_date = NULL";
+                        password_expiry_date = NULL";
         }
 
         // Добавляем условие WHERE для обновления только одной записи, используя $userId
@@ -84,8 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['update_user_error'] = 'Ошибка при обновлении данных пользователя';
         }
 
-        // Перенаправляем пользователя на страницу admin.php после обновления данных
-        header('Location: /phprequest/src/pages/admin.php');
+        // Перенаправляем пользователя на страницу edit_user.php после обновления данных
+        header("Location: edit_user.php?users_id=$userId");
         exit();
     } else {
         $_SESSION['update_user_error'] = 'Не все данные были переданы';
@@ -95,5 +103,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Если скрипт дошел до этой точки, значит что-то пошло не так
-header('Location: /phprequest/src/pages/admin.php');
+header("Location: /phprequest/src/pages/admin.php");
 exit();

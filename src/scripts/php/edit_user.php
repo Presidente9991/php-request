@@ -66,6 +66,16 @@ if (isset($_GET['users_id']) && is_numeric($_GET['users_id'])) {
 </head>
 <body>
 <header class="header-section center">
+    <?php
+    // Проверяем результат выполнения запроса на изменение информации о пользователях
+    if (isset($_SESSION['update_user_success'])) {
+        echo "<p class='success-message'>{$_SESSION['update_user_success']}</p>";
+        unset($_SESSION['update_user_success']);
+    } elseif (isset($_SESSION['update_user_error'])) {
+        echo "<p class='error-message'>{$_SESSION['update_user_error']}</p>";
+        unset($_SESSION['update_user_error']);
+    }
+    ?>
     <h1 class="header-content-header">Редактирование данных пользователя</h1>
     <?php if (isset($_SESSION['edit_user_error'])): ?>
         <p class="error-message"><?php echo $_SESSION['edit_user_error']; ?></p>
