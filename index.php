@@ -1,16 +1,16 @@
 <?php
-require_once('src/scripts/php/database.php');
-require_once('src/scripts/php/unblock_users.php');
 session_start();
 
-checkAndUnblockUsers();
+$tempFilePath = $_SERVER['DOCUMENT_ROOT'] . '/phprequest/documents/temp_message.txt';
 
-$db_conn = databaseConnection();
-$user_id = $_SESSION['user']['id'] ?? null;
-
-if (isset($_SESSION['user'])) {
-    header('Location: /phprequest/src/pages/main.php');
-    exit();
+// Проверяем наличие временного файла и его содержимого
+if (file_exists($tempFilePath)) {
+    $message = file_get_contents($tempFilePath);
+    // Удаляем временный файл
+    unlink($tempFilePath);
+} else {
+    $message = $_SESSION['message'] ?? '';
+    unset($_SESSION['message']);
 }
 ?>
 
@@ -18,7 +18,7 @@ if (isset($_SESSION['user'])) {
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="icon" type="image/png" href="/phprequest/src/images/favicons/favicon.png">
     <link rel="stylesheet" href="/phprequest/src/styles/index.css">
@@ -43,33 +43,11 @@ if (isset($_SESSION['user'])) {
     </div>
 </header>
 <section class="main-content center">
-    <?php
-    $tempFilePath = '/documents/temp_message.txt';
-    if (file_exists($_SERVER['DOCUMENT_ROOT'] . $tempFilePath)) {
-        $message = file_get_contents($_SERVER['DOCUMENT_ROOT'] . $tempFilePath);
-        unlink($_SERVER['DOCUMENT_ROOT'] . $tempFilePath);
-        echo '<p class="blocked-message">' . $message . '</p>';
-    }
-    ?>
-
-    <?php if (isset($_SESSION['reset_password_success'])): ?>
-        <p class="success-message"><?php echo $_SESSION['reset_password_success']; ?></p>
-        <?php unset($_SESSION['reset_password_success']); ?>
-    <?php endif; ?>
-
-    <?php if (isset($_SESSION['reset_password_error'])): ?>
-        <p class="error-message"><?php echo $_SESSION['reset_password_error']; ?></p>
-        <?php unset($_SESSION['reset_password_error']); ?>
-    <?php endif; ?>
-
     <h1 class="main-content-header">Система запроса справок о назначенных суммах</h1>
     <form class="auth-form center" action="/phprequest/src/scripts/php/login.php" method="post">
-        <?php
-        if (isset($_SESSION['message'])) {
-            echo '<p class="wrong-login-password"> ' . $_SESSION['message'] . ' </p>';
-        }
-        unset($_SESSION['message']);
-        ?>
+        <?php if (!empty($message)): ?>
+            <p class="wrong-login-password"><?= $message ?></p>
+        <?php endif; ?>
         <label for="login" class="login-label">Логин
             <input id="login" type="text" name="login" placeholder="Введите ваш логин">
         </label>
