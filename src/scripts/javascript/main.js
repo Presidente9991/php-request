@@ -17,9 +17,8 @@ function updateClock() {
     setTimeout(updateClock, 1000);
 }
 
+// Вызов функции обновления времени
 window.onload = updateClock;
-
-
 
 // Функция для обновления таблицы запросов актуальными данными
 function updateRequestTable() {

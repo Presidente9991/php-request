@@ -21,6 +21,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_request'])) {
     $lastName = preg_replace('/[^а-я]/ui', '', $_POST['last_name_citizen']); // Только кириллические буквы
     $firstName = preg_replace('/[^а-я]/ui', '', $_POST['first_name_citizen']); // Только кириллические буквы
     $middleName = isset($_POST['middle_name_citizen']) ? preg_replace('/[^а-я]/ui', '', $_POST['middle_name_citizen']) : null; // Только кириллические буквы
+
+    // Устанавливаем NULL для пустых значений
+    $lastName = $lastName === '' ? NULL : $lastName;
+    $firstName = $firstName === '' ? NULL : $firstName;
+    $middleName = $middleName === '' ? NULL : $middleName;
+
     $birthday = date('Y-m-d', strtotime($_POST['birthday_citizen']));
     $requestedDateStart = date('Y-m-d', strtotime($_POST['requested_date_start']));
     $requestedDateEnd = date('Y-m-d', strtotime($_POST['requested_date_end']));
@@ -47,7 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_request'])) {
         header('Location: /phprequest/src/scripts/php/add_request_form.php');
         exit();
     }
-
 
     // Выполняем запрос на добавление данных в таблицу requests
     $query = "INSERT INTO phprequest_schema.requests (users_id, snils_citizen, last_name_citizen, first_name_citizen, middle_name_citizen, birthday_citizen, requested_date_start, requested_date_end, download_link, request_status_id) VALUES ($1::integer, $2, $3, $4, $5, $6, $7, $8, NULL, 1)";
