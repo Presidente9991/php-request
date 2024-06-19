@@ -121,12 +121,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requests_id']) && !is
             $uploadDir = '/phprequest/documents/'; // Каталог для сохранения загруженных файлов
             $uploadFile = $uploadDir . basename($_FILES['file_upload']['name']);
 
+            // Генерируем уникальное имя файла
+            $uniqueFileName = uniqid() . '_' . $_FILES['file_upload']['name'];
+            $uploadFile = $uploadDir . $uniqueFileName;
+
             // Перемещаем загруженный файл в указанную директорию
             if(move_uploaded_file($_FILES['file_upload']['tmp_name'], $_SERVER['DOCUMENT_ROOT'] . $uploadFile)) {
-                // Обновляем запись в базе данных с путем к загруженному файлу
+                // Сохраняем уникальное имя файла в базе данных и обновляем запись в базе данных с путём к загруженному файлу
                 $queryUpdateFile = "UPDATE phprequest_schema.requests SET download_link = '$uploadFile' WHERE requests_id = '$requestId'";
                 $resultUpdateFile = pg_query(databaseConnection(), $queryUpdateFile);
-
                 if(!$resultUpdateFile) {
                     $_SESSION['edit_request_error'] = 'Ошибка при обновлении пути к файлу';
                     header('Location: /phprequest/src/scripts/php/edit_request.php?requests_id=' . $requestId);
