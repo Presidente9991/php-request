@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_request'])) {
     $firstName = $firstName === '' ? NULL : $firstName;
     $middleName = $middleName === '' ? NULL : $middleName;
 
+    // Преобразовать строки, содержащие даты в формат, понятный PostgreSQL
     $birthday = date('Y-m-d', strtotime($_POST['birthday_citizen']));
     $requestedDateStart = date('Y-m-d', strtotime($_POST['requested_date_start']));
     $requestedDateEnd = date('Y-m-d', strtotime($_POST['requested_date_end']));
