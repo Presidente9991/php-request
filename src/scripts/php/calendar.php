@@ -9,10 +9,9 @@ if (!isset($_SESSION['user'])) {
 }
 
 require_once ('unblock_users.php');
-checkAndUnblockUsers();
+checkAndUnblockUsers(); // Проверяем и разблокируем пользователей
 
 // Функция генерации календаря. Для работы необходимо активировать расширение PHP - calendar !
-
 
 // Установить дату для календаря
 $selected_date = isset($_GET['date']) ? date('Y-m-d', strtotime($_GET['date'])) : date('Y-m-d');
@@ -78,9 +77,7 @@ function generate_calendar($year, $month): string
     while ($day <= $days_in_month) {
         for ($i = $first_day_of_week; $i <= 7; $i++) {
             if ($day <= $days_in_month) {
-
                 $calendar .= '<td class="calendar-body-value"><a class="calendar-body-value-link" href="?date=' . date('Y-m-d', mktime(0, 0, 0, $month, $day, $year)) . '">' . $day . '</a></td>';
-
                 $day++;
             } else {
                 $calendar .= '<td class="calendar-body-value-link"></td>';
@@ -99,7 +96,6 @@ function generate_calendar($year, $month): string
     $calendar .= '</div>';
 
     return $calendar;
-
 }
 
 $prev_month = date('Y-m-d', strtotime('-1 month', strtotime($selected_date)));

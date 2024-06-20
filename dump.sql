@@ -185,16 +185,19 @@ INSERT INTO phprequest_schema.request_statuses VALUES (3, 'Ответ по за�
 -- Data for Name: requests; Type: TABLE DATA; Schema: phprequest_schema; Owner: pgsql
 --
 
+INSERT INTO phprequest_schema.requests VALUES (1, '2024-06-19', 2, '11111111111', 'Иванов', 'Иван', '', '2000-01-01', '2024-01-01', '2024-05-31', 2, NULL, '10:00:04.347361');
+INSERT INTO phprequest_schema.requests VALUES (2, '2024-06-19', 4, '11111111112', 'Иванов', 'Иван', '', '2000-01-01', '2024-01-01', '2024-01-31', 2, NULL, '10:17:23.560769');
 
 
 --
 -- Data for Name: users; Type: TABLE DATA; Schema: phprequest_schema; Owner: pgsql
 --
 
-INSERT INTO phprequest_schema.users VALUES (4, 'kozlov_kk', '$2y$10$5BILWbeLYOvonhzqHhYUr.w5cbwK1CRXhWQRj9f9gkt22svjVjISu', 'Константин', 'Козлов', 'Константинович', 2, '2024-06-17 18:53:12.683366', '2024-09-15 18:53:12', false, false, NULL, 0);
-INSERT INTO phprequest_schema.users VALUES (1, 'Requester', '$2y$10$lIVDmqlfwpuF0lXGDX9hde4VRQBULl4FbRFsz5JvBenc6iU.ezPfu', 'Админ', 'Супер', '', 1, '2024-03-08 00:00:00', '9999-12-31 23:59:59', true, false, NULL, 0);
-INSERT INTO phprequest_schema.users VALUES (2, 'ivanov_ii', '$2y$10$wa.E3GG0qqj1/yyzLFTC6ObqOFnOHtQxoLXack2SIFDEBT33BG1yC', 'Иван', 'Иванов', 'Иванович', 1, '2024-06-17 19:37:45', '2024-09-15 00:00:00', false, false, NULL, 0);
 INSERT INTO phprequest_schema.users VALUES (3, 'petrov_pp', '$2y$10$3tmuxfKIM7BIU1aRSB4QS.o26Lz.wt9.Ng3LFmbU0zgQG/jK2eM/u', 'Пётр', 'Петров', 'Петрович', 2, '2024-06-17 18:45:43', '9999-12-31 23:59:59', true, false, NULL, 0);
+INSERT INTO phprequest_schema.users VALUES (5, 'sidorov_ss', '$2y$10$S/mjMMbuucKzav/CJtIdy.a4m3C0al9KbDBPOeQC6XKf4B0aAggCi', 'Сергей', 'Сидоров', 'Сергеевич', 2, '2024-06-19 19:59:32', '9999-12-31 23:59:59', true, false, NULL, 0);
+INSERT INTO phprequest_schema.users VALUES (1, 'Requester', '$2y$10$lIVDmqlfwpuF0lXGDX9hde4VRQBULl4FbRFsz5JvBenc6iU.ezPfu', 'Админ', 'Супер', '', 1, '2024-03-08 00:00:00', '9999-12-31 23:59:59', true, false, NULL, 0);
+INSERT INTO phprequest_schema.users VALUES (4, 'kozlov_kk', '$2y$10$5BILWbeLYOvonhzqHhYUr.w5cbwK1CRXhWQRj9f9gkt22svjVjISu', 'Константин', 'Козлов', 'Константинович', 2, '2024-06-17 18:53:12.683366', '2024-09-15 18:53:12', false, false, NULL, 0);
+INSERT INTO phprequest_schema.users VALUES (2, 'ivanov_ii', '$2y$10$wa.E3GG0qqj1/yyzLFTC6ObqOFnOHtQxoLXack2SIFDEBT33BG1yC', 'Иван', 'Иванов', 'Иванович', 1, '2024-06-17 19:37:45', '2024-09-15 00:00:00', false, false, NULL, 0);
 
 
 --
@@ -216,14 +219,14 @@ SELECT pg_catalog.setval('phprequest_schema.request_statuses_id_sec', 4, true);
 -- Name: requests_id_sec; Type: SEQUENCE SET; Schema: phprequest_schema; Owner: pgsql
 --
 
-SELECT pg_catalog.setval('phprequest_schema.requests_id_sec', 1, false);
+SELECT pg_catalog.setval('phprequest_schema.requests_id_sec', 2, true);
 
 
 --
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: phprequest_schema; Owner: pgsql
 --
 
-SELECT pg_catalog.setval('phprequest_schema.users_id_seq', 4, true);
+SELECT pg_catalog.setval('phprequest_schema.users_id_seq', 5, true);
 
 
 --

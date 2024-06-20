@@ -1,16 +1,17 @@
 <?php
-session_start();
+session_start(); // Начинаем сессию для сохранения и доступа к данным сессии
 
+// Определяем путь к временному файлу сообщения
 $tempFilePath = $_SERVER['DOCUMENT_ROOT'] . '/phprequest/documents/temp_message.txt';
 
 // Проверяем наличие временного файла и его содержимого
 if (file_exists($tempFilePath)) {
-    $message = file_get_contents($tempFilePath);
-    // Удаляем временный файл
-    unlink($tempFilePath);
+    $message = file_get_contents($tempFilePath); // Читаем содержимое временного файла
+    unlink($tempFilePath); // Удаляем временный файл после чтения
 } else {
+    // Если временного файла нет, получаем сообщение из сессии, если оно существует
     $message = $_SESSION['message'] ?? '';
-    unset($_SESSION['message']);
+    unset($_SESSION['message']); // Удаляем сообщение из сессии после получения
 }
 ?>
 
@@ -29,14 +30,17 @@ if (file_exists($tempFilePath)) {
     <h1 class="header-content-header">Социальные сети</h1>
     <div class="social-logo">
         <p class="social-logo-header">Telegram</p>
+        <!-- Ссылка на Telegram -->
         <a href="https://t.me/Presidente9991" target="_blank">
             <img class="social-logo-image" src="/phprequest/src/images/logos/telegram.png" alt="telegram-logo">
         </a>
         <p class="social-logo-header">GitHub</p>
+        <!-- Ссылка на GitHub -->
         <a href="https://github.com/Presidente9991" target="_blank">
             <img class="social-logo-image" src="/phprequest/src/images/logos/github.png" alt="github-logo">
         </a>
         <p class="social-logo-header">GitFlic</p>
+        <!-- Ссылка на GitFlic -->
         <a href="https://gitflic.ru/user/toxicoman9991" target="_blank">
             <img class="social-logo-image" src="/phprequest/src/images/logos/gitflic.png" alt="gitflic-logo">
         </a>
@@ -45,6 +49,7 @@ if (file_exists($tempFilePath)) {
 <section class="main-content center">
     <h1 class="main-content-header">Система запроса справок о назначенных суммах</h1>
     <form class="auth-form center" action="/phprequest/src/scripts/php/login.php" method="post">
+        <!-- Отображение сообщения, если оно не пустое -->
         <?php if (!empty($message)): ?>
             <p class="wrong-login-password"><?= $message ?></p>
         <?php endif; ?>
@@ -60,6 +65,7 @@ if (file_exists($tempFilePath)) {
 </section>
 <footer class="footer center">
     <div class="footer-content center">
+        <!-- Ссылка на профиль GeekBrains -->
         <a href="https://gb.ru/users/2ee33a68-028a-49ca-bf37-fdebf86b9dd6" target="_blank">
             <img class="social-logo-image" src="/phprequest/src/images/logos/geek_brains.png" alt="gb-logo">
         </a>

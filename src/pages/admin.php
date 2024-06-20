@@ -1,26 +1,27 @@
 <?php
-session_start();
-require_once('../../src/scripts/php/database.php');
-require_once('../../src/scripts/php/check_request_status.php');
-require_once ('../../src/scripts/php/unblock_users.php');
-checkAndUnblockUsers();
+session_start(); // Начинаем сессию для доступа к сессионным переменным
+
+require_once('../../src/scripts/php/database.php'); // Подключаем файл для работы с базой данных
+require_once('../../src/scripts/php/check_request_status.php'); // Подключаем файл для проверки статуса запросов
+require_once ('../../src/scripts/php/unblock_users.php'); // Подключаем файл для разблокировки пользователей
+
+checkAndUnblockUsers(); // Вызываем функцию для проверки и разблокировки пользователей
 
 // Проверяем, если пользователь не авторизован, перенаправляем его на страницу авторизации
 if (!isset($_SESSION['user'])) {
     header('Location: /phprequest/index.php');
-    exit();
+    exit(); // Прерываем выполнение скрипта
 }
 // Проверяем, если роль пользователя не "Администратор", перенаправляем его на главную страницу
 if ($_SESSION['user']['role_id'] !== '1') {
-    // Если роль пользователя не равна 1, то перенаправляем его обратно на текущую страницу
     header('Location: /phprequest/src/pages/main.php');
-    exit();
+    exit(); // Прерываем выполнение скрипта
 }
 
-// Получить текущую дату и дату, выбранную пользователем из календаря
+// Получить текущую дату в формате ДД.ММ.ГГГГ
 $current_datetime = date('d.m.Y');
 
-$db_conn = databaseConnection();
+$db_conn = databaseConnection(); // Устанавливаем соединение с базой данных
 $query = "SELECT u.*, r.name_user_role, 
                  CASE 
                      WHEN u.password_expiry_date < CURRENT_TIMESTAMP THEN 'Истек'
@@ -39,20 +40,16 @@ $query = "SELECT u.*, r.name_user_role,
          JOIN phprequest_schema.users_roles r ON u.role_id = r.id_user_role
          ORDER BY u.users_id DESC";
 
-
-
-$result = pg_query($db_conn, $query);
+$result = pg_query($db_conn, $query); // Выполняем запрос к базе данных
 
 // Собираем данные в массив
 $user_data = [];
 while ($row = pg_fetch_assoc($result)) {
-    $user_data[] = $row;
+    $user_data[] = $row; // Добавляем каждую строку результата в массив
 }
 
-// Освобождаем результат запроса
-pg_free_result($result);
-// Закрываем соединение с базой данных
-pg_close($db_conn);
+pg_free_result($result); // Освобождаем результат запроса
+pg_close($db_conn); // Закрываем соединение с базой данных
 
 // Проверка на наличие сообщений об ошибках или успехе при регистрации
 $registration_error = $_SESSION['registration_error'] ?? null;

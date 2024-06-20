@@ -12,7 +12,7 @@ $tempFilePath = __DIR__ . '/../../../documents/temp_message.txt';
 $message = $_SESSION['message'] ?? '';
 file_put_contents($tempFilePath, $message);
 
-// Удаляем только переменную пользователя из сессии
+// Удаляем переменную пользователя из сессии
 unset($_SESSION['user']);
 
 // Уничтожаем сессию полностью

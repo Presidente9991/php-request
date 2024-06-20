@@ -10,27 +10,27 @@ function updateClock() {
     minutes = (minutes < 10 ? "0" : "") + minutes;
     seconds = (seconds < 10 ? "0" : "") + seconds;
 
-    // Обновить элемент с классом "clock" на текущее время
+    // Обновить элемент с классом "current-clock" на текущее время
     document.querySelector('.current-clock').innerHTML = hours + ":" + minutes + ":" + seconds;
 
     // Вызвать эту функцию каждую секунду
     setTimeout(updateClock, 1000);
 }
-// Вызов функции обновления времени
+// Вызов функции обновления времени при загрузке страницы
 window.onload = updateClock;
 
-// Функция проверки силы пароля
+// Функция для настройки индикатора силы пароля
 function setupPasswordStrengthIndicator() {
     document.getElementById("password").addEventListener("input", function() {
         const password = this.value;
         const result = checkPasswordRequirements(password);
         const indicator = document.getElementById("password-strength-indicator");
-        indicator.textContent = "" + result.text;
+        indicator.textContent = result.text;
         indicator.className = result.class;
     });
 }
 
-// Функция цветовой индикации парольных требований
+// Функция для проверки силы пароля на основе требований
 function checkPasswordRequirements(password) {
     const requirements = {
         'length': password.length >= 8,
@@ -43,7 +43,7 @@ function checkPasswordRequirements(password) {
         'no-spaces': !/\s/.test(password)
     };
 
-    // Проверка на требования
+    // Проверка каждого требования и установка соответствующих классов
     for (const requirement in requirements) {
         const element = document.getElementById(requirement);
         if (requirements[requirement]) {
@@ -55,14 +55,15 @@ function checkPasswordRequirements(password) {
         }
     }
 
-    // Проверка на опасные пароли
+    // Проверка на использование распространённых паролей
     if (isCommonPassword(password)) {
         return { text: "Распространённый пароль! Использование опасно!", class: "red" };
     } else {
-        return { text: ""};
+        return { text: "" };
     }
 }
 
+// Функция для проверки наличия последовательных букв в пароле
 function hasSequentialLetters(password) {
     const qwerty = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', 'йцукенгшщзхъ', 'фывапролджэ', 'ячсмитьбю'];
     for (let i = 0; i < qwerty.length; i++) {
@@ -77,8 +78,7 @@ function hasSequentialLetters(password) {
     return /(.)\1{3}/.test(password.toLowerCase());
 }
 
-
-// Функция проверки на 4 идущих подряд цифры
+// Функция для проверки наличия последовательных цифр в пароле
 function hasSequentialDigits(password) {
     const digits = '01234567890';
     for (let i = 0; i <= digits.length - 4; i++) {
@@ -90,7 +90,7 @@ function hasSequentialDigits(password) {
     return false;
 }
 
-// Функция просмотра опасных паролей
+// Функция для проверки, является ли пароль распространённым
 function isCommonPassword(password) {
     const commonPasswords = [
         "password",
@@ -120,7 +120,7 @@ function isCommonPassword(password) {
     return commonPasswords.includes(password);
 }
 
-// Вызов функции для настройки индикатора силы пароля
+// Вызов функции для настройки индикатора силы пароля при загрузке страницы
 setupPasswordStrengthIndicator();
 
 // Функция для обновления таблицы пользователей актуальными данными

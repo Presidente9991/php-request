@@ -83,6 +83,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requests_id']) && !is
         $errors[] = 'Отчество должно содержать только кириллические символы, пробелы и дефисы.';
     }
 
+    // Проверяем MIME-тип загруженного файла
+    if(isset($_FILES['file_upload']) && $_FILES['file_upload']['error'] === UPLOAD_ERR_OK) {
+        $allowedMimeTypes = ['application/pdf', 'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.spreadsheet', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+
+        // Получаем MIME-тип файла
+        $fileMimeType = mime_content_type($_FILES['file_upload']['tmp_name']);
+
+        // Проверяем, соответствует ли MIME-тип разрешенным типам
+        if (!in_array($fileMimeType, $allowedMimeTypes)) {
+            $_SESSION['edit_request_error'] = 'Недопустимый формат файла. Разрешены только PDF, ODT, ODS, DOC, DOCX, XLS и XLSX.';
+            header('Location: /phprequest/src/scripts/php/edit_request.php?requests_id=' . $requestId);
+            exit();
+        }
+    }
+
     // Если есть ошибки, объединяем их в одну строку
     if (!empty($errors)) {
         $_SESSION['edit_request_error'] = implode("<br>", $errors);

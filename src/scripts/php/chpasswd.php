@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
 
+        // Проверка нового пароля на соответствие требованиям
         if (!validatePassword($newPassword)) {
             $_SESSION['chpasswd_error'] = 'Новый пароль не соответствует требованиям';
             header('Location: /phprequest/src/scripts/php/edit_user.php?users_id=' . $_SESSION['current_users_id']);
@@ -68,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         WHERE users_id = $4";
         $updateParams = array($hashedPassword, $currentDateTime, $passwordExpiryDate, $usersId);
 
-        // Если у пользователя бессрочный пароль, то устанавливаем большое значение для даты
+        // Если у пользователя бессрочный пароль, устанавливаем большое значение для даты
         if ($unlimitedPasswordExpiry == 't') {
             $updateQuery = "UPDATE phprequest_schema.users 
                             SET password = $1, 
@@ -78,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $updateParams = array($hashedPassword, $currentDateTime, $usersId);
         }
 
+        // Выполняем запрос на обновление пароля
         $updateResult = pg_query_params($db_conn, $updateQuery, $updateParams);
 
         // Проверяем результат обновления пароля
@@ -87,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['chpasswd_error'] = 'Ошибка при изменении пароля';
         }
 
-        // Перенаправляем пользователя на страницу edit_user.php
+        // Перенаправляем пользователя на страницу edit_user.php с параметром users_id
         header('Location: /phprequest/src/scripts/php/edit_user.php?users_id=' . $usersId);
         exit();
     }
@@ -103,7 +105,7 @@ function validatePassword($password): bool
     return preg_match($pattern, $password) && !hasSequentialLetters($password) && !hasSequentialDigits($password);
 }
 
-// Проверка букв на 4 идущих подряд (в прямом и обратном порядке)
+// Проверка наличия четырех подряд идущих букв
 function hasSequentialLetters($password): bool
 {
     $qwerty = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', 'йцукенгшщзхъ', 'фывапролджэ', 'ячсмитьбю'];
@@ -115,7 +117,7 @@ function hasSequentialLetters($password): bool
     return false;
 }
 
-// Проверка цифр на 4 идущих подряд (в прямом и обратном порядке)
+// Проверка наличия четырех подряд идущих цифр
 function hasSequentialDigits($password): bool
 {
     $digits = '01234567890';

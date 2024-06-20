@@ -1,6 +1,6 @@
 <?php
-session_start();
-require_once('database.php');
+session_start(); // Начинаем сессию для работы с сессионными переменными
+require_once('database.php'); // Подключаем файл с функциями для работы с базой данных
 
 // Проверяем, авторизован ли пользователь
 if (!isset($_SESSION['user'])) {
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_request'])) {
         $errors[] = 'Дата окончания периода не может быть раньше даты начала.';
     }
 
-    // Если есть ошибки, объединяем их в одну строку
+    // Если есть ошибки, объединяем их в одну строку и перенаправляем на форму добавления с ошибками
     if (!empty($errors)) {
         $_SESSION['add_request_error'] = implode("<br>", $errors);
         header('Location: /phprequest/src/scripts/php/add_request_form.php');
@@ -65,13 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_request'])) {
         $_SESSION['add_request_success'] = 'Запрос успешно добавлен в очередь на обработку.';
         header('Location: /phprequest/src/pages/main.php');
     } else {
-        // Выводим ошибку PostgreSQL для более подробной диагностики
+        // В случае ошибки базы данных выводим сообщение об ошибке
         $_SESSION['add_request_error'] .= 'Запрос не добавлен из-за ошибки: ' . pg_last_error(databaseConnection());
         header('Location: /phprequest/src/scripts/php/add_request_form.php');
     }
     exit();
 }
 
-// После всех проверок и сбора информации выполняем перенаправление
+// Если не был отправлен POST-запрос или произошла ошибка, перенаправляем на форму добавления запроса
 header('Location: /phprequest/src/scripts/php/add_request_form.php');
 exit();
