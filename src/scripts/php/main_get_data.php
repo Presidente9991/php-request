@@ -124,8 +124,31 @@ function generate_request_table($selected_date)
             // Разрешаем доступ для администратора с логином "Requester"
             $table .= '<td class="request-table-value"><a class="table-value-link" href="/phprequest/src/scripts/php/edit_request.php?requests_id=' . $row['requests_id'] . '">Редактировать</a></td>';
         } elseif ($requestStatusId == 1) {
-            // Разрешаем доступ для всех при статусе "Запрос создан"
-            $table .= '<td class="request-table-value"><a class="table-value-link" href="/phprequest/src/scripts/php/edit_request.php?requests_id=' . $row['requests_id'] . '">Редактировать</a></td>';
+            // Если статус "Запрос создан"
+            if ($_SESSION['user']['role_id'] == 1) {
+                // Разрешаем доступ для всех с role_id = 1
+                $table .= '<td class="request-table-value"><a class="table-value-link" href="/phprequest/src/scripts/php/edit_request.php?requests_id=' . $row['requests_id'] . '">Редактировать</a></td>';
+            } elseif ($_SESSION['user']['role_id'] == 2) {
+                // Проверяем совпадение информации об авторе запроса для пользователей с role_id = 2
+                $sessionFirstName = $_SESSION['user']['first_name'];
+                $sessionMiddleName = $_SESSION['user']['middle_name'];
+                $sessionLastName = $_SESSION['user']['last_name'];
+
+                $dbFirstName = $author_info_row['employee_first_name'];
+                $dbMiddleName = $author_info_row['employee_middle_name'];
+                $dbLastName = $author_info_row['employee_last_name'];
+
+                if ($sessionFirstName == $dbFirstName && $sessionMiddleName == $dbMiddleName && $sessionLastName == $dbLastName) {
+                    // Разрешаем доступ, если информация об авторе запроса совпадает с данными из сессии
+                    $table .= '<td class="request-table-value"><a class="table-value-link" href="/phprequest/src/scripts/php/edit_request.php?requests_id=' . $row['requests_id'] . '">Редактировать</a></td>';
+                } else {
+                    // Запрещаем доступ, если информация не совпадает
+                    $table .= '<td class="request-table-value" style="color: #ff0000">Запрещено</td>';
+                }
+            } else {
+                // Запрещаем доступ для всех остальных пользователей с другим role_id при статусе "Запрос создан"
+                $table .= '<td class="request-table-value" style="color: #ff0000">Запрещено</td>';
+            }
         } elseif ($requestStatusId == 4) {
             // Запрещаем доступ при статусе "Запрос закрыт"
             $table .= '<td class="request-table-value" style="color: #ff0000">Запрос закрыт</td>';

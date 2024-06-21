@@ -2,38 +2,38 @@
 * {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
+    box-sizing: border-box; /* Устанавливаем box-sizing для всех элементов */
 }
 
 /* Центрирование */
 .center {
-    padding-left: calc(50% - 1800px / 2);
+    padding-left: calc(50% - 1800px / 2); /* Центрирование блока шириной 1800px */
     padding-right: calc(50% - 1800px / 2);
 }
 
 /* Начало стилей заголовочной секции */
 .header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-around;
+    display: flex; /* Flex-контейнер для расстановки элементов */
+    flex-direction: row; /* Располагаем элементы в строку */
+    align-items: center; /* Выравнивание элементов по центру по вертикали */
+    justify-content: space-around; /* Равномерное распределение элементов по горизонтали */
     padding-top: 20px;
     padding-bottom: 20px;
-    background: rgba(227, 227, 227);
+    background: rgba(227, 227, 227); /* Светло-серый фон */
 }
 
 .header-content-header, .social-logo-header {
-    font-family: "Cascadia Code", monospace;
+    font-family: "Cascadia Code", monospace; /* Шрифт для заголовков и логотипа соцсетей */
 }
 
 .social-logo {
-    display: flex;
-    align-items: center;
-    gap: 50px;
+    display: flex; /* Flex-контейнер для логотипа соцсетей */
+    align-items: center; /* Выравнивание по центру */
+    gap: 50px; /* Расстояние между элементами */
 }
 
 .social-logo-image {
-    width: 100px;
+    width: 100px; /* Ширина логотипа соцсети */
 }
 /* Конец стилей заголовочной секции */
 
@@ -41,100 +41,101 @@
 .main-content-header {
     padding-top: 20px;
     padding-bottom: 20px;
-    font-family: "Cascadia Code", monospace;
-    text-align: center;
+    font-family: "Cascadia Code", monospace; /* Шрифт для заголовка основной секции */
+    text-align: center; /* Выравнивание текста по центру */
 }
 
 .main-content {
     padding-top: 20px;
     padding-bottom: 20px;
-    background: rgba(227, 227, 227, 0.5);}
+    background: rgba(227, 227, 227, 0.5); /* Полупрозрачный фон для основной секции */
+}
 
 .auth-form {
     padding-top: 100px;
-    display: grid;
-    justify-content: space-around;
-    align-items: baseline;
-    justify-items: center;
-    align-content: center;
-    gap: 25px;
+    display: grid; /* Сеточное отображение для формы авторизации */
+    justify-content: space-around; /* Равномерное распределение элементов по горизонтали */
+    align-items: baseline; /* Выравнивание по базовой линии */
+    justify-items: center; /* Выравнивание элементов по центру по горизонтали */
+    align-content: center; /* Выравнивание контента по центру по вертикали */
+    gap: 25px; /* Расстояние между элементами */
 }
 
 .login-label, .password-label {
-    font-family: "Cascadia Code", monospace;
-    text-align: center;
+    font-family: "Cascadia Code", monospace; /* Шрифт для меток логина и пароля */
+    text-align: center; /* Выравнивание текста по центру */
 }
 
 #login, #password {
-    font-family: "Hack Nerd Font Mono", monospace;
-    border: unset;
-    border: 2px solid #969696;
-    display: grid;
+    font-family: "Hack Nerd Font Mono", monospace; /* Шрифт для полей ввода логина и пароля */
+    border: unset; /* Убираем стандартную рамку браузера */
+    border: 2px solid #969696; /* Серая рамка */
+    display: grid; /* Сеточное отображение для полей ввода */
     margin-top: 10px;
-    height: 50px;
-    width: 325px;
-    text-align: center;
+    height: 50px; /* Высота поля ввода */
+    width: 325px; /* Ширина поля ввода */
+    text-align: center; /* Выравнивание текста по центру */
 }
 
 .login-button {
-    font-family: "DejaVu Serif", serif;
-    border: solid #969696;
-    background: #e9e9e9;
-    cursor: pointer;
-    height: 50px;
-    width: 172px;
+    font-family: "DejaVu Serif", serif; /* Шрифт для кнопки */
+    border: solid #969696; /* Серая рамка */
+    background: #e9e9e9; /* Светло-серый фон */
+    cursor: pointer; /* Изменяем курсор при наведении на кнопку */
+    height: 50px; /* Высота кнопки */
+    width: 172px; /* Ширина кнопки */
 }
 
 .forgot-password, .wrong-login-password, .blocked-message, .error-message {
-    font-family: "Cascadia Code", monospace;
-    text-align: center;
-    color: #ff0000;
+    font-family: "Cascadia Code", monospace; /* Шрифт для сообщений */
+    text-align: center; /* Выравнивание текста по центру */
+    color: #ff0000; /* Красный цвет текста */
     padding-top: 20px;
     padding-bottom: 20px;
 }
 
 .success-message {
-    color: #008000;
+    color: #008000; /* Зеленый цвет текста для успешных сообщений */
 }
 
 .forgot-password-link {
-    text-decoration: none;
-    color: #0000ff;
+    text-decoration: none; /* Убираем подчеркивание у ссылки */
+    color: #0000ff; /* Синий цвет текста */
 }
 /* Конец стилей основной секции */
 
 /* Начало стилей подвальной секции */
 .footer {
-    border-top: 2px solid rgba(0, 0, 0, 0.5);;
+    border-top: 2px solid rgba(0, 0, 0, 0.5); /* Верхняя полупрозрачная черная граница */
     padding-top: 20px;
     padding-bottom: 10px;
-    background: rgba(227, 227, 227);
+    background: rgba(227, 227, 227); /* Светло-серый фон */
 }
 
 .footer-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
+    display: flex; /* Flex-контейнер для расстановки элементов */
+    flex-direction: column; /* Располагаем элементы в столбец */
+    align-items: center; /* Выравнивание элементов по центру */
+    gap: 20px; /* Расстояние между элементами */
 }
 
 .footer-header {
-    font-family: Hack, cursive;
+    font-family: Hack, cursive; /* Шрифт для заголовка подвала */
 }
 
 .theme-work {
-    color: #0000ff;
-    font-style: italic;
+    color: #0000ff; /* Синий цвет текста для ссылок на тему работы */
+    font-style: italic; /* Курсивное начертание */
 }
 
 .no-commercial {
-    color: red;
+    color: red; /* Красный цвет текста для предупреждения о коммерческом использовании */
 }
 /* Конец стилей подвальной секции */
 
 @media (max-width: 1366px) {
     .center {
-        padding-left: calc(50% - 1300px / 2);
+        padding-left: calc(50% - 1300px / 2); /* Адаптивное центрирование для маленьких экранов */
         padding-right: calc(50% - 1300px / 2);
     }
 }

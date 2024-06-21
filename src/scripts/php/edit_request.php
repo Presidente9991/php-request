@@ -2,6 +2,7 @@
 session_start();
 require_once('database.php');
 require_once('check_request_status.php');
+
 // Проверяем, авторизован ли пользователь
 if (!isset($_SESSION['user'])) {
     // Если пользователь не авторизован, перенаправляем его на страницу входа
@@ -52,39 +53,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['requests_id'])) {
                         echo "<p class='error-message'>Ошибка: {$_SESSION['edit_request_error']}</p>";
                         unset($_SESSION['edit_request_error']);
                     }
-                    if(isset($_SESSION['edit_request_success'])) {
-                        echo "<p class='success-message'> {$_SESSION['edit_request_success']}</p>";
+                    // Выводим сообщение об успешном изменении, если таковое было установлено
+                    if (isset($_SESSION['edit_request_success'])) {
+                        echo "<p class='success-message'>{$_SESSION['edit_request_success']}</p>";
+                        unset($_SESSION['edit_request_success']);
                     }
                     ?>
                     <form class="edit-request-form" action="update_request.php" method="post" enctype="multipart/form-data">
                         <label for="snils_citizen">СНИЛС гражданина:</label>
-                        <input type="text" id="snils_citizen" name="snils_citizen" value="<?php echo $requestData['snils_citizen']; ?>" required>
+                        <input type="text" id="snils_citizen" name="snils_citizen" value="<?php echo htmlspecialchars($requestData['snils_citizen']); ?>" required>
 
                         <label for="last_name_citizen">Фамилия гражданина:</label>
-                        <input type="text" id="last_name_citizen" name="last_name_citizen" value="<?php echo $requestData['last_name_citizen']; ?>" required>
+                        <input type="text" id="last_name_citizen" name="last_name_citizen" value="<?php echo htmlspecialchars($requestData['last_name_citizen']); ?>" required>
 
                         <label for="first_name_citizen">Имя гражданина:</label>
-                        <input type="text" id="first_name_citizen" name="first_name_citizen" value="<?php echo $requestData['first_name_citizen']; ?>" required>
+                        <input type="text" id="first_name_citizen" name="first_name_citizen" value="<?php echo htmlspecialchars($requestData['first_name_citizen']); ?>" required>
 
                         <label for="middle_name_citizen">Отчество гражданина:</label>
-                        <input type="text" id="middle_name_citizen" name="middle_name_citizen" value="<?php echo $requestData['middle_name_citizen']; ?>">
+                        <input type="text" id="middle_name_citizen" name="middle_name_citizen" value="<?php echo htmlspecialchars($requestData['middle_name_citizen']); ?>">
 
                         <label for="birthday_citizen">Дата рождения гражданина:</label>
-                        <input type="date" id="birthday_citizen" name="birthday_citizen" value="<?php echo $requestData['birthday_citizen']; ?>" required min="1900-01-01" max="2100-12-31">
+                        <input type="date" id="birthday_citizen" name="birthday_citizen" value="<?php echo htmlspecialchars($requestData['birthday_citizen']); ?>" required min="1900-01-01" max="2100-12-31">
 
                         <label for="requested_date_start">Дата начала запрашиваемого периода:</label>
-                        <input type="date" id="requested_date_start" name="requested_date_start" value="<?php echo $requestData['requested_date_start']; ?>" required min="1900-01-01" max="2100-12-31">
+                        <input type="date" id="requested_date_start" name="requested_date_start" value="<?php echo htmlspecialchars($requestData['requested_date_start']); ?>" required min="1900-01-01" max="2100-12-31">
 
                         <label for="requested_date_end">Дата окончания запрашиваемого периода:</label>
-                        <input type="date" id="requested_date_end" name="requested_date_end" value="<?php echo $requestData['requested_date_end']; ?>" required min="1900-01-01" max="2100-12-31">
+                        <input type="date" id="requested_date_end" name="requested_date_end" value="<?php echo htmlspecialchars($requestData['requested_date_end']); ?>" required min="1900-01-01" max="2100-12-31">
 
                         <?php if ($userRole != 2): ?>
                             <label for="request_status_id">Статус запроса:</label>
                             <select id="request_status_id" name="request_status_id" required>
-                        <?php
-                        // Запрос для получения текстовых обозначений статусов запросов из базы данных
-                        $statusQuery = "SELECT request_statuses.request_statuses_id, status_text FROM phprequest_schema.request_statuses WHERE request_statuses_id != 1"; // Исключаем статус "Запрос создан"
-                        $statusResult = pg_query(databaseConnection(), $statusQuery);
+                                <?php
+                                // Запрос для получения текстовых обозначений статусов запросов из базы данных
+                                $statusQuery = "SELECT request_statuses_id, status_text FROM phprequest_schema.request_statuses WHERE request_statuses_id != 1"; // Исключаем статус "Запрос создан"
+                                $statusResult = pg_query(databaseConnection(), $statusQuery);
 
                                 if ($statusResult) {
                                     // Выводим каждый вариант статуса в виде опции выпадающего списка
@@ -110,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['requests_id'])) {
                     <div class="saved-file">
                         <?php if (!empty($requestData['download_link']) && $userRole != 2): ?>
                             <label class="saved-file-header">Действия с сохранённым файлом:</label>
-                            <a class="download-file-link" href="<?php echo $requestData['download_link']; ?>" target="_blank">Скачать сохранённый файл</a>
+                            <a class="download-file-link" href="<?php echo htmlspecialchars($requestData['download_link']); ?>" target="_blank">Скачать сохранённый файл</a>
                             <form action="update_request.php" method="post">
                                 <input type="hidden" name="delete_file" value="true">
                                 <input type="hidden" name="requests_id" value="<?php echo $requestId; ?>">
@@ -124,6 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['requests_id'])) {
                 <a class="back-to-main-page-link" href="/phprequest/src/pages/main.php">Назад на главную страницу</a>
             </footer>
             <script>
+                // Скрипт для форматирования ввода СНИЛСа в поле input
                 document.getElementById('snils_citizen').addEventListener('input', function(e) {
                     let value = e.target.value.replace(/\D/g, '');
                     if (value.length > 11) {
@@ -134,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['requests_id'])) {
                     } else if (value.length >= 6 && value.length < 9) {
                         value = value.replace(/^(\d{3})(\d{3})(\d{0,3}).*/, '$1-$2-$3');
                     } else if (value.length >= 9) {
-                        value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2}).*/, '$1-$2-$3 $4');
+                        value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2}).*/, '$1-$2-$3-$4');
                     }
                     e.target.value = value;
                 });
@@ -143,16 +147,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['requests_id'])) {
             </html>
 
             <?php
-            exit();
         } else {
-            $_SESSION['edit_request_error'] = 'У вас нет прав на редактирование запросов';
+            // Если пользователь не имеет прав на редактирование запроса, устанавливаем ошибку и перенаправляем на главную страницу
+            $_SESSION['edit_request_error'] = 'У вас нет прав на редактирование этого запроса';
+            header('Location: /phprequest/index.php');
+            exit();
         }
     } else {
+        // Если запрос с указанным ID не найден, устанавливаем ошибку и перенаправляем на главную страницу
         $_SESSION['edit_request_error'] = 'Запрос с указанным ID не найден';
+        header('Location: /phprequest/index.php');
+        exit();
     }
+} else {
+    // Если не был передан идентификатор запроса, устанавливаем ошибку и перенаправляем на главную страницу
+    $_SESSION['edit_request_error'] = 'Необходимо указать ID запроса для редактирования';
+    header('Location: /phprequest/index.php');
+    exit();
 }
-
-// Если скрипт дошел до этой точки, значит что-то пошло не так или пользователь не имеет прав на редактирование запроса
-header('Location: /phprequest/src/pages/main.php');
-exit();
 ?>

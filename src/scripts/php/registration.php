@@ -24,28 +24,35 @@ function registerUser($login, $password, $confirmPassword, $firstName, $lastName
     $lastName = pg_escape_string($db_conn, $lastName);
     $middleName = isset($middleName) ? pg_escape_string($db_conn, $middleName) : null;
 
+    $errors = array();
+
     // Проверка наличия пробелов и NULL в полях Фамилия, Имя и Логин
     if (empty(trim($firstName)) || empty(trim($lastName)) || empty(trim($login))) {
-        $emptyFields = [];
         if (empty(trim($firstName))) {
-            $emptyFields[] = 'Фамилия';
+            $errors[] = 'Поле Фамилия не должно быть пустым';
         }
         if (empty(trim($lastName))) {
-            $emptyFields[] = 'Имя';
+            $errors[] = 'Поле Имя не должно быть пустым';
         }
         if (empty(trim($login))) {
-            $emptyFields[] = 'Логин';
+            $errors[] = 'Поле Логин не должно быть пустым';
         }
-        $_SESSION['registration_error'] = 'Поля ' . implode(', ', $emptyFields) . ' не должны быть пустыми';
-        header('Location: /phprequest/src/pages/admin.php');
-        exit();
     }
 
     // Проверка длины логина
     if (strlen($login) > 100) {
-        $_SESSION['registration_error'] = 'Длина логина не должна превышать 100 символов';
-        header('Location: /phprequest/src/pages/admin.php');
-        exit();
+        $errors[] = 'Длина логина не должна превышать 100 символов';
+    }
+
+    // Проверка на кириллические символы в фамилии, имени и отчестве
+    if (!preg_match('/^[а-яёА-ЯЁ\s-]+$/u', $lastName)) {
+        $errors[] = 'Фамилия должна содержать только кириллические символы, пробелы и дефисы';
+    }
+    if (!preg_match('/^[а-яёА-ЯЁ\s-]+$/u', $firstName)) {
+        $errors[] = 'Имя должно содержать только кириллические символы, пробелы и дефисы';
+    }
+    if (!empty($middleName) && !preg_match('/^[а-яёА-ЯЁ\s-]*$/u', $middleName)) {
+        $errors[] = 'Отчество должно содержать только кириллические символы, пробелы и дефисы';
     }
 
     // Преобразовать значение роли в соответствующее числовое значение
@@ -54,10 +61,7 @@ function registerUser($login, $password, $confirmPassword, $firstName, $lastName
     } elseif ($role_id === 2 || $role_id === '2' || $role_id === 'Пользователь') {
         $role_id = 2;
     } else {
-        // Если роль не соответствует ожидаемым значениям, выведите сообщение об ошибке и завершите выполнение функции
-        $_SESSION['registration_error'] = 'Недопустимая роль пользователя';
-        header('Location: /phprequest/src/pages/admin.php');
-        exit();
+        $errors[] = 'Недопустимая роль пользователя';
     }
 
     // Проверить, существует ли такой пользователь
@@ -65,20 +69,21 @@ function registerUser($login, $password, $confirmPassword, $firstName, $lastName
     $check_user_result = pg_execute($db_conn, "check_user_query", array($login));
 
     if (pg_num_rows($check_user_result) > 0) {
-        $_SESSION['registration_error'] = 'Пользователь с таким логином уже существует';
-        header('Location: /phprequest/src/pages/admin.php');
-        exit();
+        $errors[] = 'Пользователь с таким логином уже существует';
     }
 
     // Проверка пароля на соответствие требованиям
     if ($password !== $confirmPassword) {
-        $_SESSION['registration_error'] = 'Пароли не совпадают';
-        header('Location: /phprequest/src/pages/admin.php');
-        exit();
+        $errors[] = 'Пароли не совпадают';
     }
 
     if (!validatePassword($password)) {
-        $_SESSION['registration_error'] = 'Пароль не соответствует требованиям';
+        $errors[] = 'Пароль не соответствует требованиям';
+    }
+
+    // Если есть ошибки, объединяем их в одну строку и перенаправляем
+    if (!empty($errors)) {
+        $_SESSION['registration_error'] = implode("<br>", $errors);
         header('Location: /phprequest/src/pages/admin.php');
         exit();
     }
@@ -100,7 +105,7 @@ function registerUser($login, $password, $confirmPassword, $firstName, $lastName
     if ($result) {
         $_SESSION['registration_success'] = 'Пользователь успешно зарегистрирован';
     } else {
-        $_SESSION['registration_error'] = 'Ошибка при регистрации пользователя' . pg_last_error($db_conn);
+        $_SESSION['registration_error'] = 'Ошибка при регистрации пользователя: ' . pg_last_error($db_conn);
     }
     header('Location: /phprequest/src/pages/admin.php');
     exit();
@@ -110,7 +115,7 @@ function registerUser($login, $password, $confirmPassword, $firstName, $lastName
 function validatePassword($password): bool
 {
     // Требования к паролю
-    $pattern = '/^(?=.*[a-zA-Zа-яА-Я])(?=.*\d)(?=.*[!"$%&\'()+,\-.\/:;<=>?@\[\]^_{|}~`-])(?!.*(.)\1\1\1)(?!.*(\w)\1\1\1)(?!.*\s).{8,}$/';
+    $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!"$%&\'()+,\-.\/:;<=>?@\[\]^_{|}~`-])(?!.*[а-яА-Я])(?!.*(.)\1\1\1)(?!.*(\w)\1\1\1)(?!.*\s).{8,}$/';
 
     // Проверка на соответствие требованиям
     return preg_match($pattern, $password) && !hasSequentialLetters($password) && !hasSequentialDigits($password);
@@ -158,27 +163,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Вызвать функцию регистрации пользователя с учётом роли и наличия чекбокса для бессрочного срока действия пароля
         registerUser($login, $password, $confirmPassword, $firstName, $lastName, $role, $middleName, $unlimitedPasswordExpiry);
     } else {
-        $emptyFields = [];
+        $errors = [];
         if (empty($_POST['login'])) {
-            $emptyFields[] = 'Логин';
+            $errors[] = 'Поле Логин не заполнено';
         }
         if (empty($_POST['password'])) {
-            $emptyFields[] = 'Пароль';
+            $errors[] = 'Поле Пароль не заполнено';
         }
         if (empty($_POST['confirm-password'])) {
-            $emptyFields[] = 'Подтверждение пароля';
+            $errors[] = 'Поле Подтверждение пароля не заполнено';
         }
         if (empty($_POST['first-name'])) {
-            $emptyFields[] = 'Имя';
+            $errors[] = 'Поле Имя не заполнено';
         }
         if (empty($_POST['last-name'])) {
-            $emptyFields[] = 'Фамилия';
+            $errors[] = 'Поле Фамилия не заполнено';
         }
         if (empty($_POST['role'])) {
-            $emptyFields[] = 'Роль';
+            $errors[] = 'Поле Роль не заполнено';
         }
 
-        $_SESSION['registration_error'] = 'Не все поля заполнены: ' . implode(', ', $emptyFields);
+        $_SESSION['registration_error'] = 'Не все поля заполнены: ' . implode(', ', $errors);
         header('Location: /phprequest/src/pages/admin.php');
         exit();
     }

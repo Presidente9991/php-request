@@ -2,28 +2,28 @@
 * {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
+    box-sizing: border-box; /* Устанавливаем box-sizing для всех элементов */
 }
 
 /* Центрирование */
 .center {
-    padding-left: calc(50% - 1600px / 2);
+    padding-left: calc(50% - 1600px / 2); /* Центрирование блока шириной 1600px */
     padding-right: calc(50% - 1600px / 2);
 }
 
 /* Начало стилей для заголовочной секции */
 .header-section {
-    background: rgba(227, 227, 227);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    background: rgba(227, 227, 227); /* Светло-серый фон */
+    display: flex; /* Flex-контейнер для расстановки элементов */
+    flex-direction: column; /* Располагаем элементы в столбец */
+    align-items: center; /* Выравнивание по центру */
     padding-top: 15px;
     padding-bottom: 15px;
 }
 
 .header-content-header, .main-content-header {
-    text-align: center;
-    font-family: "Cascadia Code", monospace;
+    text-align: center; /* Выравнивание текста по центру */
+    font-family: "Cascadia Code", monospace; /* Шрифт для заголовков */
     padding-bottom: 15px;
 }
 
@@ -32,41 +32,40 @@
     flex-direction: column;
     align-items: center;
     gap: 15px;
-    font-family: "Liberation Sans", sans-serif;
+    font-family: "Liberation Sans", sans-serif; /* Шрифт для формы редактирования */
     text-align: center;
     padding-top: 10px;
     padding-bottom: 10px;
 }
 
 #login, #employee_last_name, #employee_first_name, #employee_middle_name, #role_id, #unlimited-password-expiry-label {
-    display: grid;
+    display: grid; /* Сеточное отображение для полей ввода */
     width: 500px;
     height: 40px;
-    text-align: center;
+    text-align: center; /* Выравнивание текста по центру */
     margin-bottom: 5px;
     margin-top: 5px;
 }
 
 .update-user-button, .update-block-unblock-status-button, .update-user-password-button {
-    font-family: "DejaVu Serif", serif;
-    color: #0000ff;
-    border: solid #969696;
-    background: #e9e9e9;
+    font-family: "DejaVu Serif", serif; /* Шрифт для кнопок */
+    color: #0000ff; /* Синий цвет текста */
+    border: solid #969696; /* Серая рамка */
+    background: #e9e9e9; /* Светло-серый фон */
     margin: 15px;
     padding: 5px;
 }
-
 /* Конец стилей для заголовочной секции */
 
 /* Начало стилей для основной секции */
 .article-section {
-    background: rgba(227, 227, 227, 0.5);
+    background: rgba(227, 227, 227, 0.5); /* Полупрозрачный фон */
     padding-top: 15px;
     padding-bottom: 15px;
 }
 
 .main-section-content {
-    padding: 25px;
+    padding: 25px; /* Внутренний отступ контента */
 }
 
 .block-unblock-users-form, .change-password-form {
@@ -74,32 +73,33 @@
     flex-direction: column;
     align-items: center;
     gap: 15px;
-    font-family: "Liberation Sans", sans-serif;
+    font-family: "Liberation Sans", sans-serif; /* Шрифт для форм блокировки/разблокировки и изменения пароля */
     text-align: center;
     padding-top: 10px;
     padding-bottom: 10px;
 }
 
 .block-unblock-users-form-warning, .error-message {
-    font-family: "Cascadia Code", monospace;
+    font-family: "Cascadia Code", monospace; /* Шрифт для сообщений */
     text-align: center;
-    color: #ff0000;
+    color: #ff0000; /* Красный цвет текста */
     padding-top: 20px;
-    padding-bottom: 20px;}
+    padding-bottom: 20px;
+}
 
 .success-message {
-    color: #008000;
-    font-family: "Cascadia Code", monospace;
+    color: #008000; /* Зеленый цвет текста для успешных сообщений */
+    font-family: "Cascadia Code", monospace; /* Шрифт для сообщений */
     text-align: center;
     padding-top: 20px;
     padding-bottom: 20px;
 }
 
 #blocked_until, #new-password, #new-password-check {
-    display: grid;
+    display: grid; /* Сеточное отображение для полей ввода */
     width: 500px;
     height: 40px;
-    text-align: center;
+    text-align: center; /* Выравнивание текста по центру */
     margin-bottom: 5px;
     margin-top: 5px;
 }
@@ -109,17 +109,17 @@
 .footer-section {
     padding-top: 15px;
     padding-bottom: 15px;
-    background: rgba(227, 227, 227);
-    border-top: solid 2px #000000;
-    display: flex;
-    justify-content: center;
+    background: rgba(227, 227, 227); /* Светло-серый фон */
+    border-top: solid 2px #000000; /* Верхняя черная граница */
+    display: flex; /* Flex-контейнер для расстановки элементов */
+    justify-content: center; /* Распределение элементов по центру */
 }
 
 .back-to-admin-page-link {
-    text-decoration: none;
-    font-family: "DejaVu Serif", serif;
-    border: solid #969696;
-    background: #e9e9e9;
+    text-decoration: none; /* Убираем подчеркивание у ссылок */
+    font-family: "DejaVu Serif", serif; /* Шрифт для ссылок */
+    border: solid #969696; /* Серая рамка */
+    background: #e9e9e9; /* Светло-серый фон */
     margin: 15px;
     padding: 5px;
 }
@@ -127,7 +127,7 @@
 
 @media (max-width: 1366px) and (max-height: 768px) {
     .center {
-        padding-left: calc(50% - 1300px / 2);
+        padding-left: calc(50% - 1300px / 2); /* Адаптивное центрирование для маленьких экранов */
         padding-right: calc(50% - 1300px / 2);
     }
 }

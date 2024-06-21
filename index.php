@@ -1,16 +1,17 @@
 <?php
-require_once('src/scripts/php/database.php');
-require_once('src/scripts/php/unblock_users.php');
-session_start();
+session_start(); // Начинаем сессию для сохранения и доступа к данным сессии
 
-checkAndUnblockUsers();
+// Определяем путь к временному файлу сообщения
+$tempFilePath = $_SERVER['DOCUMENT_ROOT'] . '/phprequest/documents/temp_message.txt';
 
-$db_conn = databaseConnection();
-$user_id = $_SESSION['user']['id'] ?? null;
-
-if (isset($_SESSION['user'])) {
-    header('Location: /phprequest/src/pages/main.php');
-    exit();
+// Проверяем наличие временного файла и его содержимого
+if (file_exists($tempFilePath)) {
+    $message = file_get_contents($tempFilePath); // Читаем содержимое временного файла
+    unlink($tempFilePath); // Удаляем временный файл после чтения
+} else {
+    // Если временного файла нет, получаем сообщение из сессии, если оно существует
+    $message = $_SESSION['message'] ?? '';
+    unset($_SESSION['message']); // Удаляем сообщение из сессии после получения
 }
 ?>
 
@@ -18,7 +19,7 @@ if (isset($_SESSION['user'])) {
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="icon" type="image/png" href="/phprequest/src/images/favicons/favicon.png">
     <link rel="stylesheet" href="/phprequest/src/styles/index.css">
@@ -29,47 +30,29 @@ if (isset($_SESSION['user'])) {
     <h1 class="header-content-header">Социальные сети</h1>
     <div class="social-logo">
         <p class="social-logo-header">Telegram</p>
+        <!-- Ссылка на Telegram -->
         <a href="https://t.me/Presidente9991" target="_blank">
             <img class="social-logo-image" src="/phprequest/src/images/logos/telegram.png" alt="telegram-logo">
         </a>
         <p class="social-logo-header">GitHub</p>
+        <!-- Ссылка на GitHub -->
         <a href="https://github.com/Presidente9991" target="_blank">
             <img class="social-logo-image" src="/phprequest/src/images/logos/github.png" alt="github-logo">
         </a>
         <p class="social-logo-header">GitFlic</p>
+        <!-- Ссылка на GitFlic -->
         <a href="https://gitflic.ru/user/toxicoman9991" target="_blank">
             <img class="social-logo-image" src="/phprequest/src/images/logos/gitflic.png" alt="gitflic-logo">
         </a>
     </div>
 </header>
 <section class="main-content center">
-    <?php
-    $tempFilePath = '/documents/temp_message.txt';
-    if (file_exists($_SERVER['DOCUMENT_ROOT'] . $tempFilePath)) {
-        $message = file_get_contents($_SERVER['DOCUMENT_ROOT'] . $tempFilePath);
-        unlink($_SERVER['DOCUMENT_ROOT'] . $tempFilePath);
-        echo '<p class="blocked-message">' . $message . '</p>';
-    }
-    ?>
-
-    <?php if (isset($_SESSION['reset_password_success'])): ?>
-        <p class="success-message"><?php echo $_SESSION['reset_password_success']; ?></p>
-        <?php unset($_SESSION['reset_password_success']); ?>
-    <?php endif; ?>
-
-    <?php if (isset($_SESSION['reset_password_error'])): ?>
-        <p class="error-message"><?php echo $_SESSION['reset_password_error']; ?></p>
-        <?php unset($_SESSION['reset_password_error']); ?>
-    <?php endif; ?>
-
     <h1 class="main-content-header">Система запроса справок о назначенных суммах</h1>
     <form class="auth-form center" action="/phprequest/src/scripts/php/login.php" method="post">
-        <?php
-        if (isset($_SESSION['message'])) {
-            echo '<p class="wrong-login-password"> ' . $_SESSION['message'] . ' </p>';
-        }
-        unset($_SESSION['message']);
-        ?>
+        <!-- Отображение сообщения, если оно не пустое -->
+        <?php if (!empty($message)): ?>
+            <p class="wrong-login-password"><?= $message ?></p>
+        <?php endif; ?>
         <label for="login" class="login-label">Логин
             <input id="login" type="text" name="login" placeholder="Введите ваш логин">
         </label>
@@ -82,6 +65,7 @@ if (isset($_SESSION['user'])) {
 </section>
 <footer class="footer center">
     <div class="footer-content center">
+        <!-- Ссылка на профиль GeekBrains -->
         <a href="https://gb.ru/users/2ee33a68-028a-49ca-bf37-fdebf86b9dd6" target="_blank">
             <img class="social-logo-image" src="/phprequest/src/images/logos/geek_brains.png" alt="gb-logo">
         </a>

@@ -55,7 +55,7 @@ if ($result) {
                 header('Location: /phprequest/index.php');
                 exit();
             } else {
-                $_SESSION['user']['blocked'] = ($user['blocked'] === 'f');
+                $_SESSION['user']['blocked'] = ($user['blocked'] === 'FALSE');
             }
 
             // Устанавливаем данные пользователя в сессию только после успешной проверки пароля и блокировки
@@ -63,6 +63,9 @@ if ($result) {
                 "id" => $user['users_id'],
                 "login" => $user['login'],
                 "role_id" => $user['role_id'],
+                "first_name" => $user['employee_first_name'],
+                "middle_name" => $user['employee_middle_name'],
+                "last_name" => $user['employee_last_name'],
                 "blocked" => ($user['blocked'] === 'FALSE')
             ];
 
